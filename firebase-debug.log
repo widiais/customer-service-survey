@@ -1,0 +1,172 @@
+[debug] [2025-08-03T05:05:40.309Z] ----------------------------------------------------------------------
+[debug] [2025-08-03T05:05:40.312Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Admin\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2025-08-03T05:05:40.312Z] CLI Version:   14.11.2
+[debug] [2025-08-03T05:05:40.312Z] Platform:      win32
+[debug] [2025-08-03T05:05:40.312Z] Node Version:  v22.17.1
+[debug] [2025-08-03T05:05:40.313Z] Time:          Sun Aug 03 2025 12:05:40 GMT+0700 (Western Indonesia Time)
+[debug] [2025-08-03T05:05:40.313Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-08-03T05:05:40.507Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-08-03T05:05:40.507Z] > authorizing via signed-in user (widiahmadibnu@gmail.com)
+[debug] [2025-08-03T05:05:40.507Z] [iam] checking project crs-crms for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-08-03T05:05:40.508Z] Checked if tokens are valid: false, expires at: 1754152899954
+[debug] [2025-08-03T05:05:40.508Z] Checked if tokens are valid: false, expires at: 1754152899954
+[debug] [2025-08-03T05:05:40.508Z] > refreshing access token with scopes: []
+[debug] [2025-08-03T05:05:40.510Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-08-03T05:05:40.510Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-08-03T05:05:40.652Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-08-03T05:05:40.652Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-08-03T05:05:40.656Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/crs-crms:testIamPermissions [none]
+[debug] [2025-08-03T05:05:40.656Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/crs-crms:testIamPermissions x-goog-quota-user=projects/crs-crms
+[debug] [2025-08-03T05:05:40.656Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/crs-crms:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-08-03T05:05:41.833Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/crs-crms:testIamPermissions 200
+[debug] [2025-08-03T05:05:41.834Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/crs-crms:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2025-08-03T05:05:41.834Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:41.834Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:41.835Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/crs-crms [none]
+[debug] [2025-08-03T05:05:42.192Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/crs-crms 200
+[debug] [2025-08-03T05:05:42.192Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/crs-crms {"projectId":"crs-crms","projectNumber":"47343737826","displayName":"crs-crms","name":"projects/crs-crms","resources":{"hostingSite":"crs-crms"},"state":"ACTIVE","etag":"1_1443cf87-2ce1-4bd6-a4c2-88b401a3d988"}
+[debug] [2025-08-03T05:05:44.201Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:44.202Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:44.202Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/crs-crms/sites pageToken=&pageSize=10
+[debug] [2025-08-03T05:05:45.079Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/crs-crms/sites 200
+[debug] [2025-08-03T05:05:45.079Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/crs-crms/sites {"sites":[{"name":"projects/crs-crms/sites/crs-crms","defaultUrl":"https://crs-crms.web.app","appId":"1:47343737826:web:d72c647aaf78589a06b7bb","type":"DEFAULT_SITE"}]}
+[debug] [2025-08-03T05:05:45.079Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:45.080Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:45.080Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:47343737826:web:d72c647aaf78589a06b7bb/config [none]
+[debug] [2025-08-03T05:05:45.913Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:47343737826:web:d72c647aaf78589a06b7bb/config 200
+[debug] [2025-08-03T05:05:45.913Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:47343737826:web:d72c647aaf78589a06b7bb/config {"projectId":"crs-crms","appId":"1:47343737826:web:d72c647aaf78589a06b7bb","storageBucket":"crs-crms.firebasestorage.app","apiKey":"AIzaSyDs8uy6AMhol1VEDX9x0sYzHiZJUN-pHz0","authDomain":"crs-crms.firebaseapp.com","messagingSenderId":"47343737826","measurementId":"G-DPH9SX5JR8"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 15.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2025-08-03T05:05:49.946Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:49.946Z] Checked if tokens are valid: true, expires at: 1754201139652
+[debug] [2025-08-03T05:05:49.946Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/crs-crms/sites/crs-crms [none]
+[debug] [2025-08-03T05:05:50.326Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/crs-crms/sites/crs-crms 200
+[debug] [2025-08-03T05:05:50.326Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/crs-crms/sites/crs-crms {"name":"projects/crs-crms/sites/crs-crms","defaultUrl":"https://crs-crms.web.app","appId":"1:47343737826:web:d72c647aaf78589a06b7bb","type":"DEFAULT_SITE"}
+[info]    ▲ Next.js 15.4.5
+
+[info]    - Environments: .env.local
+
+
+[info]    Creating an optimized production build ...
+
+[info]  ✓ Compiled successfully in 13.0s
+
+[info]    Linting and checking validity of types ...
+
+[info] 
+Failed to compile.
+
+./src/app/dashboard/questions/categories/page.tsx
+47:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+64:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+73:16  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/questions/collection/page.tsx
+7:20  Warning: 'Category' is defined but never used.  @typescript-eslint/no-unused-vars
+216:17  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+216:46  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/app/dashboard/questions/create/components/CategorySelector.tsx
+124:57  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+124:73  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/app/dashboard/questions/groups/edit/[id]/components/AvailableQuestions.tsx
+8:15  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/dashboard/questions/groups/edit/[id]/components/GroupForm.tsx
+17:15  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/dashboard/questions/groups/edit/[id]/components/helpers.ts
+10:45  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+15:46  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/dashboard/questions/groups/edit/[id]/components/SortableQuestionItem.tsx
+11:15  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/dashboard/questions/groups/page.tsx
+7:25  Warning: 'Question' is defined but never used.  @typescript-eslint/no-unused-vars
+48:9  Warning: 'getQuestionText' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/stores/new/page.tsx
+43:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/stores/page.tsx
+6:41  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+18:10  Warning: 'showGroupModal' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+37:16  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+49:9  Warning: 'handleAssignQuestionGroup' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+54:9  Warning: 'assignQuestionGroup' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+67:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/stores/[id]/assign-groups/page.tsx
+54:14  Warning: 'error' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/stores/[id]/assign-groups/SearchGroups.tsx
+61:38  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+61:51  Error: `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.  react/no-unescaped-entities
+
+./src/app/dashboard/survey/analytics/page.tsx
+8:10  Warning: 'BarChart3' is defined but never used.  @typescript-eslint/no-unused-vars
+8:21  Warning: 'TrendingUp' is defined but never used.  @typescript-eslint/no-unused-vars
+8:33  Warning: 'Users' is defined but never used.  @typescript-eslint/no-unused-vars
+8:40  Warning: 'Star' is defined but never used.  @typescript-eslint/no-unused-vars
+12:31  Warning: 'query' is defined but never used.  @typescript-eslint/no-unused-vars
+12:38  Warning: 'where' is defined but never used.  @typescript-eslint/no-unused-vars
+48:28  Warning: 'storesLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+49:36  Warning: 'groupsLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+50:31  Warning: 'questionsLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+212:6  Warning: React Hook useEffect has a missing dependency: 'fetchResponses'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+274:9  Warning: 'stats' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/survey/results/page.tsx
+9:23  Warning: 'Filter' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/dashboard/survey/results/[storeId]/[id]/page.tsx
+43:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+67:68  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+67:76  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+69:46  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+104:88  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+140:25  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+140:33  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+141:28  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/survey/[storeId]/page.tsx
+3:20  Warning: 'useEffect' is defined but never used.  @typescript-eslint/no-unused-vars
+22:61  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+42:55  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+65:41  Error: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./src/app/survey/[storeId]/step3/page.tsx
+7:10  Warning: 'Input' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/ui/input.tsx
+4:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+
+./src/components/ui/label.tsx
+4:18  Error: An interface declaring no members is equivalent to its supertype.  @typescript-eslint/no-empty-object-type
+
+./src/hooks/useQuestionnaires.ts
+75:6  Warning: React Hook useEffect has a missing dependency: 'fetchQuestionnaires'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/hooks/useQuestions.ts
+69:6  Warning: React Hook useEffect has a missing dependency: 'fetchQuestions'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/hooks/useQuestionTemplates.ts
+4:10  Warning: 'Question' is defined but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+
+[debug] [2025-08-03T05:06:17.152Z] Error: ENOENT: no such file or directory, open 'D:\code\customer-service\.next\export-marker.json'
+[error] 
+[error] Error: An unexpected error has occurred.
