@@ -58,7 +58,7 @@ export function SearchGroups({ questionGroups, selectedGroups, onAddGroup }: Sea
               ))}
               {filteredGroups.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
-                  <p>Grup pertanyaan "{searchTerm}" tidak ditemukan</p>
+                  <p>Grup pertanyaan &quot;{searchTerm}&quot; tidak ditemukan</p>
                   <Button variant="outline" className="mt-2" onClick={() => router.push('/dashboard/questions/groups/create')}>Buat Grup Baru</Button>
                 </div>
               )}

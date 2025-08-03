@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useQuestionGroups } from '@/hooks/useQuestionGroups';
 import { useQuestions } from '@/hooks/useQuestions';
 import { useCategories } from '@/hooks/useCategories';
-import { QuestionGroup, Question } from '@/lib/types';
+import { QuestionGroup } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
 export default function QuestionGroupsPage() {
@@ -45,10 +45,7 @@ export default function QuestionGroupsPage() {
     setFilteredGroups(filtered);
   }, [questionGroups, questions, searchTerm, selectedCategory, selectedStatus]);
 
-  const getQuestionText = (questionId: string) => {
-    const question = questions.find(q => q.id === questionId);
-    return question ? question.text : 'Pertanyaan tidak ditemukan';
-  };
+
 
   const getCategoryName = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);

@@ -19,7 +19,7 @@ export default function SurveyPage() {
   const { questionGroups } = useQuestionGroups();
   const { questions } = useQuestions();
   
-  const [responses, setResponses] = useState<Record<string, any>>({});
+  const [responses, setResponses] = useState<Record<string, string | number>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -39,7 +39,7 @@ export default function SurveyPage() {
     questions.find(q => q.id === questionId)
   ).filter(Boolean) || [];
   
-  const handleResponse = (questionId: string, answer: any) => {
+  const handleResponse = (questionId: string, answer: string | number) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: answer
@@ -62,7 +62,17 @@ export default function SurveyPage() {
     setIsSubmitting(true);
     try {
       // Siapkan data answers dengan format yang benar dan urutan yang tepat
-      const answersData: Record<string, any> = {};
+      const answersData: Record<string, {
+        questionText: string;
+        questionType: string;
+        answer: string | number;
+        sectionName: string;
+        categoryName: string;
+        sectionOrder: number;
+        questionOrder: number;
+        groupId: string;
+        questionId: string;
+      }> = {};
       
       // Iterasi berdasarkan urutan grup dan pertanyaan yang benar
       assignedGroups.forEach((group, groupIndex) => {

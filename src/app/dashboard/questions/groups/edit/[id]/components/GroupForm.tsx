@@ -1,4 +1,4 @@
-import { Question } from '@/lib/types';
+import { Question, Category } from '@/lib/types';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { SortableQuestionItem } from './SortableQuestionItem';
@@ -14,7 +14,7 @@ interface Props {
   formData: GroupFormData;
   setFormData: React.Dispatch<React.SetStateAction<GroupFormData>>;
   selectedQuestions: Question[];
-  categories: any[];
+  categories: Category[];
   isSubmitting: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;

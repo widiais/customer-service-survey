@@ -12,7 +12,7 @@ import { ArrowLeft } from 'lucide-react';
 const timeOptions = ['Pagi', 'Siang', 'Sore', 'Malam'];
 const orderingMethods = ['Datang Langsung', 'Go Food', 'Grab Food', 'Shopee Food'];
 
-export default function SurveyStep3({ params }: { params: { storeId: string } }) {
+export default function SurveyStep3({ params }: { params: Promise<{ storeId: string }> }) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     preferredTimeToBuy: '',
@@ -23,28 +23,34 @@ export default function SurveyStep3({ params }: { params: { storeId: string } })
   });
 
   useEffect(() => {
-    const savedData = localStorage.getItem('surveyData');
-    if (!savedData) {
-      router.push(`/survey/${params.storeId}`);
-    }
-  }, [params.storeId, router]);
+    const checkSavedData = async () => {
+      const savedData = localStorage.getItem('surveyData');
+      if (!savedData) {
+        const resolvedParams = await params;
+        router.push(`/survey/${resolvedParams.storeId}`);
+      }
+    };
+    checkSavedData();
+  }, [params, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const savedData = JSON.parse(localStorage.getItem('surveyData') || '{}');
     localStorage.setItem('surveyData', JSON.stringify({
       ...savedData,
       step3: formData
     }));
-    router.push(`/survey/${params.storeId}/step4`);
+    const resolvedParams = await params;
+    router.push(`/survey/${resolvedParams.storeId}/step4`);
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     const savedData = JSON.parse(localStorage.getItem('surveyData') || '{}');
+    const resolvedParams = await params;
     if (savedData.step1?.agreeToMembership) {
-      router.push(`/survey/${params.storeId}/step2`);
+      router.push(`/survey/${resolvedParams.storeId}/step2`);
     } else {
-      router.push(`/survey/${params.storeId}`);
+      router.push(`/survey/${resolvedParams.storeId}`);
     }
   };
 

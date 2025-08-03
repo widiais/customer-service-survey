@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { SurveyProgress } from '@/components/survey/progress';
 import { ArrowLeft } from 'lucide-react';
 
-export default function SurveyStep4({ params }: { params: { storeId: string } }) {
+export default function SurveyStep4({ params }: { params: Promise<{ storeId: string }> }) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     diningProblems: '',
@@ -17,24 +17,30 @@ export default function SurveyStep4({ params }: { params: { storeId: string } })
   });
 
   useEffect(() => {
-    const savedData = localStorage.getItem('surveyData');
-    if (!savedData) {
-      router.push(`/survey/${params.storeId}`);
-    }
-  }, [params.storeId, router]);
+    const checkSavedData = async () => {
+      const savedData = localStorage.getItem('surveyData');
+      if (!savedData) {
+        const resolvedParams = await params;
+        router.push(`/survey/${resolvedParams.storeId}`);
+      }
+    };
+    checkSavedData();
+  }, [params, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const savedData = JSON.parse(localStorage.getItem('surveyData') || '{}');
     localStorage.setItem('surveyData', JSON.stringify({
       ...savedData,
       step4: formData
     }));
-    router.push(`/survey/${params.storeId}/step5`);
+    const resolvedParams = await params;
+    router.push(`/survey/${resolvedParams.storeId}/step5`);
   };
 
-  const handleBack = () => {
-    router.push(`/survey/${params.storeId}/step3`);
+  const handleBack = async () => {
+    const resolvedParams = await params;
+    router.push(`/survey/${resolvedParams.storeId}/step3`);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

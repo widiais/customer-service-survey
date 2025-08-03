@@ -1,3 +1,5 @@
+import { Category } from '@/lib/types';
+
 export const getTypeLabel = (type: string) => {
   switch (type) {
     case 'text': return 'Teks';
@@ -7,12 +9,12 @@ export const getTypeLabel = (type: string) => {
   }
 };
 
-export const getCategoryName = (categories: any[], categoryId: string) => {
+export const getCategoryName = (categories: Category[], categoryId: string) => {
   const category = categories.find(cat => cat.id === categoryId);
   return category ? category.name : 'Tidak ada kategori';
 };
 
-export const getCategoryColor = (categories: any[], categoryId: string) => {
+export const getCategoryColor = (categories: Category[], categoryId: string) => {
   const category = categories.find(cat => cat.id === categoryId);
   return category?.color || '#3B82F6';
 };

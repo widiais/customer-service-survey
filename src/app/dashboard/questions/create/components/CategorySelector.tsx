@@ -121,7 +121,7 @@ export default function CategorySelector({ selectedCategoryIds, onCategoryChange
               <div className="px-3 py-4 text-center text-gray-500">
                 {categoryInput.trim() ? (
                   <div>
-                    <p className="font-medium">Kategori "{categoryInput}" tidak ditemukan</p>
+                    <p className="font-medium">Kategori &quot;{categoryInput}&quot; tidak ditemukan</p>
                     <p className="text-sm mt-1">Tags masih belum terbuat. Silakan buat kategori terlebih dahulu di menu Kategori.</p>
                     <button
                       type="button"

@@ -9,7 +9,7 @@ import { SurveyProgress } from '@/components/survey/progress';
 import { ArrowLeft } from 'lucide-react';
 import { useQuestionnaires } from '@/hooks/useQuestionnaires';
 
-export default function SurveyStep5({ params }: { params: { storeId: string } }) {
+export default function SurveyStep5({ params }: { params: Promise<{ storeId: string }> }) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     expectationsForUs: '',
@@ -19,11 +19,15 @@ export default function SurveyStep5({ params }: { params: { storeId: string } })
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const savedData = localStorage.getItem('surveyData');
-    if (!savedData) {
-      router.push(`/survey/${params.storeId}`);
-    }
-  }, [params.storeId, router]);
+    const checkSavedData = async () => {
+      const savedData = localStorage.getItem('surveyData');
+      if (!savedData) {
+        const resolvedParams = await params;
+        router.push(`/survey/${resolvedParams.storeId}`);
+      }
+    };
+    checkSavedData();
+  }, [params, router]);
 
   const { addQuestionnaire } = useQuestionnaires();
 
@@ -33,9 +37,10 @@ export default function SurveyStep5({ params }: { params: { storeId: string } })
     
     try {
       const savedData = JSON.parse(localStorage.getItem('surveyData') || '{}');
+      const resolvedParams = await params;
       const completeData = {
-        storeId: params.storeId,
-        submittedAt: new Date().toISOString(),
+        storeId: resolvedParams.storeId,
+        submittedAt: new Date(),
         customerInfo: savedData.step1,
         membershipDetails: savedData.step2 || null,
         customerBehavior: savedData.step3,
@@ -49,7 +54,7 @@ export default function SurveyStep5({ params }: { params: { storeId: string } })
       localStorage.removeItem('surveyData');
       
       // Redirect to thank you page
-      router.push(`/survey/${params.storeId}/thank-you`);
+      router.push(`/survey/${resolvedParams.storeId}/thank-you`);
     } catch (error) {
       console.error('Error submitting survey:', error);
       alert('Gagal mengirim survei. Silakan coba lagi.');
@@ -58,8 +63,9 @@ export default function SurveyStep5({ params }: { params: { storeId: string } })
     }
   };
 
-  const handleBack = () => {
-    router.push(`/survey/${params.storeId}/step4`);
+  const handleBack = async () => {
+    const resolvedParams = await params;
+    router.push(`/survey/${resolvedParams.storeId}/step4`);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

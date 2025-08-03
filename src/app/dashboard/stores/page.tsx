@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Edit, Trash2, QrCode, FileText } from 'lucide-react';
 import Link from 'next/link';
@@ -15,7 +15,6 @@ import { QRPopup } from '@/components/ui/qr-popup';
 export default function StoresPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showGroupModal, setShowGroupModal] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   
   // QR Popup state
@@ -46,28 +45,7 @@ export default function StoresPage() {
     setShowQRPopup(true);
   };
 
-  const handleAssignQuestionGroup = (storeId: string) => {
-    setSelectedStoreId(storeId);
-    setShowGroupModal(true);
-  };
 
-  const assignQuestionGroup = async (questionGroupId: string) => {
-    if (!selectedStoreId) return;
-    
-    try {
-      const store = stores.find(s => s.id === selectedStoreId);
-      if (store) {
-        await updateStore(selectedStoreId, {
-          questionGroupIds: [questionGroupId]
-        });
-        alert('Grup pertanyaan berhasil diterapkan ke toko!');
-        setShowGroupModal(false);
-        setSelectedStoreId(null);
-      }
-    } catch (error) {
-      alert('Gagal menerapkan grup pertanyaan');
-    }
-  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;

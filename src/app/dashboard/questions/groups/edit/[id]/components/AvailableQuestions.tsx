@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Question } from '@/lib/types';
+import { Question, Category } from '@/lib/types';
 import { getTypeLabel, getCategoryName, getCategoryColor } from './helpers';
 
 interface Props {
   questions: Question[];
-  categories: any[];
+  categories: Category[];
   selectedQuestionIds: string[];
   onAddQuestion: (questionId: string) => void;
 }

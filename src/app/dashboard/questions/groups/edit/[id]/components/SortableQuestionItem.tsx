@@ -1,14 +1,14 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, X } from 'lucide-react';
-import { Question } from '@/lib/types';
+import { Question, Category } from '@/lib/types';
 import { getTypeLabel, getCategoryName, getCategoryColor } from './helpers';
 
 interface Props {
   question: Question;
   index: number;
   onRemove: (id: string) => void;
-  categories: any[];
+  categories: Category[];
 }
 
 export function SortableQuestionItem({ question, index, onRemove, categories }: Props) {

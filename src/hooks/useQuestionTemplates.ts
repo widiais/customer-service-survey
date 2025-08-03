@@ -1,8 +1,29 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Question, QuestionTemplate } from '@/lib/types';
+import { Question } from '@/lib/types';
 import { defaultQuestionTemplate } from '@/lib/questionTemplates';
+
+interface TemplateQuestion {
+  id: string;
+  text: string;
+  type: string;
+  category: string;
+  step: number;
+  required: boolean;
+  isActive: boolean;
+  options?: string[];
+  conditional?: string;
+}
+
+interface QuestionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  questions: TemplateQuestion[];
+  createdAt: string;
+  isDefault?: boolean;
+}
 
 export function useQuestionTemplates() {
   const [templates, setTemplates] = useState<QuestionTemplate[]>([]);
@@ -52,9 +73,13 @@ export function useQuestionTemplates() {
       if (!template) throw new Error('Template not found');
 
       // Create questions for the store
-      const storeQuestions = template.questions.map(question => ({
-        ...question,
-        storeId,
+      const storeQuestions = template.questions.map(templateQuestion => ({
+        id: templateQuestion.id,
+        text: templateQuestion.text,
+        type: templateQuestion.type as Question['type'],
+        options: templateQuestion.options,
+        categoryId: templateQuestion.category, // Use category as categoryId for now
+        isActive: templateQuestion.isActive,
         createdAt: new Date().toISOString()
       }));
 

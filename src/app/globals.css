@@ -12,10 +12,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Hapus atau comment out media query dark mode */
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+  }
+}
+*/
+
+/* Atau override dengan force light mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff !important;
+    --foreground: #171717 !important;
   }
 }
 

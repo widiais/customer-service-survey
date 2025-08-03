@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuestions } from '@/hooks/useQuestions';
 import { useCategories } from '@/hooks/useCategories';
-import { Question, Category } from '@/lib/types';
+import { Question } from '@/lib/types';
 import { Trash2, Edit, AlertTriangle } from 'lucide-react';
 
 export default function QuestionCollectionPage() {
@@ -213,7 +213,7 @@ export default function QuestionCollectionPage() {
             </p>
             <div className="bg-gray-50 p-3 rounded mb-4">
               <p className="text-sm text-gray-800 font-medium">
-                "{deleteConfirm.questionText}"
+                &quot;{deleteConfirm.questionText}&quot;
               </p>
             </div>
             <p className="text-sm text-red-600 mb-6">

@@ -13,7 +13,7 @@ const ageRanges = ['18-25', '26-35', '36-45', '46-55', '55+'];
 const incomeRanges = ['< 3 juta', '3-5 juta', '5-10 juta', '10-15 juta', '> 15 juta'];
 const socialMediaOptions = ['Instagram', 'TikTok', 'Facebook', 'Twitter', 'YouTube', 'WhatsApp'];
 
-export default function SurveyStep2({ params }: { params: { storeId: string } }) {
+export default function SurveyStep2({ params }: { params: Promise<{ storeId: string }> }) {
   const router = useRouter();
   const [formData, setFormData] = useState({
     age: '',
@@ -25,24 +25,30 @@ export default function SurveyStep2({ params }: { params: { storeId: string } })
   });
 
   useEffect(() => {
-    const savedData = localStorage.getItem('surveyData');
-    if (!savedData) {
-      router.push(`/survey/${params.storeId}`);
-    }
-  }, [params.storeId, router]);
+    const checkSavedData = async () => {
+      const savedData = localStorage.getItem('surveyData');
+      if (!savedData) {
+        const resolvedParams = await params;
+        router.push(`/survey/${resolvedParams.storeId}`);
+      }
+    };
+    checkSavedData();
+  }, [params, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const savedData = JSON.parse(localStorage.getItem('surveyData') || '{}');
     localStorage.setItem('surveyData', JSON.stringify({
       ...savedData,
       step2: formData
     }));
-    router.push(`/survey/${params.storeId}/step3`);
+    const resolvedParams = await params;
+    router.push(`/survey/${resolvedParams.storeId}/step3`);
   };
 
-  const handleBack = () => {
-    router.push(`/survey/${params.storeId}`);
+  const handleBack = async () => {
+    const resolvedParams = await params;
+    router.push(`/survey/${resolvedParams.storeId}`);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

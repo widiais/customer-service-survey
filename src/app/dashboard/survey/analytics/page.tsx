@@ -5,11 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, TrendingUp, Users, Star, Download, Filter } from 'lucide-react';
+import { Download, Filter } from 'lucide-react';
 import { useStores } from '@/hooks/useStores';
 import { useQuestionGroups } from '@/hooks/useQuestionGroups';
 import { useQuestions } from '@/hooks/useQuestions';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import * as XLSX from 'xlsx';
 
@@ -45,9 +45,9 @@ interface AnalyticsData {
 }
 
 export default function SurveyAnalyticsPage() {
-  const { stores, loading: storesLoading } = useStores();
-  const { questionGroups, loading: groupsLoading } = useQuestionGroups();
-  const { questions, loading: questionsLoading } = useQuestions();
+  const { stores } = useStores();
+  const { questionGroups } = useQuestionGroups();
+  const { questions } = useQuestions();
   
   const [selectedStores, setSelectedStores] = useState<string[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);

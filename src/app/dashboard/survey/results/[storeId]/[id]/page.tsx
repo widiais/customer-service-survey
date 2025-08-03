@@ -39,6 +39,23 @@ interface SurveyDetail {
   completionStatus: 'completed' | 'partial';
 }
 
+interface GroupOrderInfo {
+  groupId: string;
+  groupName: string;
+  order: number;
+  questionIds: string[];
+}
+
+interface AnswerData {
+  questionText: string;
+  questionType: 'text' | 'rating' | 'multiple_choice';
+  answer: string | number;
+  sectionName?: string;
+  categoryName?: string;
+  sectionOrder?: number;
+  questionOrder?: number;
+}
+
 export default function SurveyDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -64,9 +81,9 @@ export default function SurveyDetailPage() {
           
           if (data.questionGroupsOrder && data.answers) {
             // Urutkan berdasarkan questionGroupsOrder yang tersimpan
-            const sortedGroups = data.questionGroupsOrder.sort((a: any, b: any) => a.order - b.order);
+            const sortedGroups = data.questionGroupsOrder.sort((a: GroupOrderInfo, b: GroupOrderInfo) => a.order - b.order);
             
-            sortedGroups.forEach((groupInfo: any) => {
+            sortedGroups.forEach((groupInfo: GroupOrderInfo) => {
               const sectionAnswers: QuestionAnswer[] = [];
               
               // Urutkan pertanyaan berdasarkan questionIds yang tersimpan di grup
@@ -101,8 +118,9 @@ export default function SurveyDetailPage() {
             const sectionsMap = new Map<string, QuestionAnswer[]>();
             
             if (data.answers) {
-              Object.entries(data.answers).forEach(([questionId, answerData]: [string, any]) => {
-                const sectionName = answerData.sectionName || 'Umum';
+              Object.entries(data.answers).forEach(([questionId, answerData]) => {
+                const typedAnswerData = answerData as AnswerData;
+                const sectionName = typedAnswerData.sectionName || 'Umum';
                 
                 if (!sectionsMap.has(sectionName)) {
                   sectionsMap.set(sectionName, []);
@@ -110,13 +128,13 @@ export default function SurveyDetailPage() {
                 
                 sectionsMap.get(sectionName)!.push({
                   questionId,
-                  questionText: answerData.questionText,
-                  questionType: answerData.questionType,
-                  answer: answerData.answer,
+                  questionText: typedAnswerData.questionText,
+                  questionType: typedAnswerData.questionType,
+                  answer: typedAnswerData.answer,
                   sectionName,
-                  categoryName: answerData.categoryName || 'Umum',
-                  sectionOrder: answerData.sectionOrder || 0,
-                  questionOrder: answerData.questionOrder || 0
+                  categoryName: typedAnswerData.categoryName || 'Umum',
+                  sectionOrder: typedAnswerData.sectionOrder || 0,
+                  questionOrder: typedAnswerData.questionOrder || 0
                 });
               });
             }
@@ -137,8 +155,8 @@ export default function SurveyDetailPage() {
           let orderedGroupNames = data.questionGroupNames || [];
           if (data.questionGroupsOrder) {
             orderedGroupNames = data.questionGroupsOrder
-              .sort((a: any, b: any) => a.order - b.order)
-              .map((group: any) => group.groupName);
+              .sort((a: GroupOrderInfo, b: GroupOrderInfo) => a.order - b.order)
+              .map((group: GroupOrderInfo) => group.groupName);
           }
           
           setSurveyDetail({
