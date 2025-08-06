@@ -11,6 +11,7 @@ interface GroupFormData {
   name: string;
   description: string;
   questionIds: string[];
+  mandatoryQuestionIds: string[];
   isActive: boolean;
 }
 
@@ -23,9 +24,11 @@ export default function CreateQuestionGroupPage() {
     name: '',
     description: '',
     questionIds: [],
+    mandatoryQuestionIds: [],
     isActive: true
   });
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [mandatoryQuestions, setMandatoryQuestions] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -68,6 +71,7 @@ export default function CreateQuestionGroupPage() {
       await addQuestionGroup({
         ...formData,
         questionIds: selectedQuestions,
+        mandatoryQuestionIds: mandatoryQuestions,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
@@ -82,7 +86,22 @@ export default function CreateQuestionGroupPage() {
   };
 
   const toggleQuestionSelection = (questionId: string) => {
-    setSelectedQuestions(prev => 
+    setSelectedQuestions(prev => {
+      const isCurrentlySelected = prev.includes(questionId);
+      if (isCurrentlySelected) {
+        // If unselecting question, also remove from mandatory
+        setMandatoryQuestions(prevMandatory => 
+          prevMandatory.filter(id => id !== questionId)
+        );
+        return prev.filter(id => id !== questionId);
+      } else {
+        return [...prev, questionId];
+      }
+    });
+  };
+
+  const toggleMandatoryQuestion = (questionId: string) => {
+    setMandatoryQuestions(prev => 
       prev.includes(questionId)
         ? prev.filter(id => id !== questionId)
         : [...prev, questionId]
@@ -252,33 +271,51 @@ export default function CreateQuestionGroupPage() {
             <div className="border border-gray-300 rounded-md max-h-96 overflow-y-auto">
               {filteredQuestions.map((question) => (
                 <div key={question.id} className="p-3 border-b border-gray-200 last:border-b-0">
-                  <label className="flex items-start cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedQuestions.includes(question.id)}
-                      onChange={() => toggleQuestionSelection(question.id)}
-                      className="mr-3 mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center mb-1">
-                        <div
-                          className="w-2 h-2 rounded-full mr-2"
-                          style={{ backgroundColor: getCategoryColor(question.categoryId) }}
-                        ></div>
-                        <span className="text-xs text-gray-500">
-                          {getCategoryName(question.categoryId)} • {getTypeLabel(question.type)}
-                        </span>
-                      </div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {question.text}
-                      </div>
-                      {question.options && question.options.length > 0 && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Opsi: {question.options.join(', ')}
+                  <div className="flex items-start">
+                    {/* Question Selection Checkbox */}
+                    <label className="flex items-start cursor-pointer flex-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedQuestions.includes(question.id)}
+                        onChange={() => toggleQuestionSelection(question.id)}
+                        className="mr-3 mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center mb-1">
+                          <div
+                            className="w-2 h-2 rounded-full mr-2"
+                            style={{ backgroundColor: getCategoryColor(question.categoryId) }}
+                          ></div>
+                          <span className="text-xs text-gray-500">
+                            {getCategoryName(question.categoryId)} • {getTypeLabel(question.type)}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  </label>
+                        <div className="text-sm font-medium text-gray-900">
+                          {question.text}
+                        </div>
+                        {question.options && question.options.length > 0 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Opsi: {question.options.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                    
+                    {/* Mandatory Checkbox - only show if question is selected */}
+                    {selectedQuestions.includes(question.id) && (
+                      <div className="ml-4 flex items-center">
+                        <label className="flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={mandatoryQuestions.includes(question.id)}
+                            onChange={() => toggleMandatoryQuestion(question.id)}
+                            className="mr-2"
+                          />
+                          <span className="text-xs text-red-600 font-medium">Wajib</span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               

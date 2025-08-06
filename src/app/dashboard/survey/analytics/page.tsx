@@ -9,6 +9,8 @@ import { Download, Filter } from 'lucide-react';
 import { useStores } from '@/hooks/useStores';
 import { useQuestionGroups } from '@/hooks/useQuestionGroups';
 import { useQuestions } from '@/hooks/useQuestions';
+import { StoreAccessService } from '@/lib/storeAccessService';
+import { useAuth } from '@/contexts/AuthContext';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import * as XLSX from 'xlsx';
@@ -45,6 +47,7 @@ interface AnalyticsData {
 }
 
 export default function SurveyAnalyticsPage() {
+  const { user } = useAuth();
   const { stores } = useStores();
   const { questionGroups } = useQuestionGroups();
   const { questions } = useQuestions();
@@ -211,8 +214,9 @@ export default function SurveyAnalyticsPage() {
     }
   }, [selectedStores]);
 
-  // Prepare options for multi-select
-  const storeOptions = stores.map(store => ({
+  // Prepare options for multi-select (filter based on access)
+  const accessibleStores = StoreAccessService.filterAccessibleStores(user, stores);
+  const storeOptions = accessibleStores.map(store => ({
     label: store.name,
     value: store.id
   }));

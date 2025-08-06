@@ -1,13 +1,42 @@
+export interface UserPermissions {
+  subject: boolean;
+  survey: {
+    results: boolean;
+    analytics: boolean;
+  };
+  questions: {
+    create: boolean;
+    groups: boolean;
+    categories: boolean;
+    collection: boolean;
+  };
+}
+
+export interface User {
+  id: string;
+  username: string;
+  role: 'super_admin' | 'admin' | 'staff';
+  name: string;
+  permissions?: UserPermissions;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface Store {
   id: string;
   name: string;
   address: string;
+  city: string;
+  region: string;
+  area: string;
   phone: string;
   email: string;
   manager: string;
   isActive: boolean;
   createdAt: string;
-  questionGroupIds?: string[]; // Tambahkan ini
+  questionGroupIds?: string[];
+  createdBy: string; // User ID of creator
+  managers: string[]; // Array of User IDs who can manage this store
 }
 
 export interface CustomerInfo {
@@ -86,6 +115,7 @@ export interface QuestionGroup {
   name: string;
   description?: string;
   questionIds: string[]; // Array of question IDs
+  mandatoryQuestionIds?: string[]; // Array of mandatory question IDs
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useStores } from '@/hooks/useStores';
+import { Store } from '@/lib/types';
+import { StoreAccessService } from '@/lib/storeAccessService';
 import { useAuth } from '@/contexts/AuthContext';
+import { ManagerSelector } from '@/components/store/ManagerSelector';
 import { cn } from '@/lib/utils';
 
 const defaultRegions = ['Regional 1', 'Regional 2', 'Regional 3'];
@@ -173,41 +176,73 @@ function TagInput({ label, value, onChange, suggestions, placeholder }: TagInput
   );
 }
 
-export default function NewStorePage() {
+export default function EditStorePage() {
   const router = useRouter();
+  const params = useParams();
   const { user } = useAuth();
-  const { addStore } = useStores();
+  const storeId = params.id as string;
+  const { stores, updateStore, loading } = useStores();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     city: '',
     region: '',
-    area: ''
+    area: '',
+    phone: '',
+    email: '',
+    manager: ''
   });
+  const [storeFound, setStoreFound] = useState(false);
+  const [currentStore, setCurrentStore] = useState<Store | null>(null);
+
+  // Load store data when component mounts
+  useEffect(() => {
+    if (!loading && stores.length > 0) {
+      const store = stores.find(s => s.id === storeId);
+      if (store) {
+        // Ensure managers field exists with default values
+        const storeWithManagers = {
+          ...store,
+          managers: store.managers || [store.createdBy || ''].filter(Boolean),
+          createdBy: store.createdBy || ''
+        };
+        setCurrentStore(storeWithManagers);
+        setFormData({
+          name: store.name || '',
+          address: store.address || '',
+          city: store.city || '',
+          region: store.region || '',
+          area: store.area || '',
+          phone: store.phone || '',
+          email: store.email || '',
+          manager: store.manager || ''
+        });
+        setStoreFound(true);
+      } else {
+        setStoreFound(false);
+      }
+    }
+  }, [stores, loading, storeId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      await addStore({
+      await updateStore(storeId, {
         name: formData.name,
         address: formData.address,
         city: formData.city,
         region: formData.region,
         area: formData.area,
-        phone: '',
-        email: '',
-        manager: 'admin',
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        createdBy: user?.id || '', // Set creator
-        managers: [user?.id || ''], // Creator is first manager
+        phone: formData.phone,
+        email: formData.email,
+        manager: formData.manager
       });
       router.push('/dashboard/stores');
     } catch (error) {
-      alert('Gagal menyimpan toko');
+      alert('Gagal memperbarui Form');
     } finally {
       setIsSubmitting(false);
     }
@@ -227,6 +262,97 @@ export default function NewStorePage() {
     }));
   };
 
+  const handleUpdateManagers = async (managers: string[]) => {
+    if (!currentStore) return;
+    
+    try {
+      // Ensure creator is always in managers list
+      const updatedManagers = managers.includes(currentStore.createdBy) 
+        ? managers 
+        : [...managers, currentStore.createdBy].filter(Boolean);
+        
+      await updateStore(storeId, {
+        ...currentStore,
+        managers: updatedManagers
+      });
+      
+      // Update current store state
+      setCurrentStore(prev => prev ? { ...prev, managers: updatedManagers } : null);
+    } catch (error) {
+      alert('Gagal memperbarui manager list');
+    }
+  };
+
+  // Check if user can access this store
+  const canAccess = currentStore ? StoreAccessService.canAccessStore(user, currentStore) : false;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat data Subject Form...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!storeFound) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Link href="/dashboard/stores">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Subject Form Tidak Ditemukan</h1>
+            <p className="text-gray-600">Subject Form dengan ID tersebut tidak ditemukan</p>
+          </div>
+        </div>
+        <Card className="max-w-2xl">
+          <CardContent className="pt-6">
+            <p className="text-center text-gray-500 mb-4">Subject Form yang Anda cari tidak ditemukan.</p>
+            <div className="text-center">
+              <Link href="/dashboard/stores">
+                <Button>Kembali ke Daftar Subject Form</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!canAccess) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Link href="/dashboard/stores">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-red-600">Akses Ditolak</h1>
+            <p className="text-gray-600">Anda tidak memiliki izin untuk mengakses Subject Form ini</p>
+          </div>
+        </div>
+        <Card className="max-w-2xl">
+          <CardContent className="pt-6">
+            <p className="text-center text-gray-500 mb-4">Anda hanya dapat mengakses Subject Form yang Anda buat atau manage.</p>
+            <div className="text-center">
+              <Link href="/dashboard/stores">
+                <Button>Kembali ke Daftar Subject Form</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
@@ -236,8 +362,8 @@ export default function NewStorePage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tambah Subject Form Baru</h1>
-          <p className="text-gray-600">Masukkan informasi Subject Form baru</p>
+          <h1 className="text-3xl font-bold text-gray-900">Edit Subject Form</h1>
+          <p className="text-gray-600">Perbarui informasi Subject Form</p>
         </div>
       </div>
 
@@ -300,13 +426,23 @@ export default function NewStorePage() {
                 required
               />
             </div>
-
+            
+            {/* Manager Selector */}
+            {currentStore && (
+              <div className="pt-6 border-t">
+                <ManagerSelector 
+                  store={currentStore} 
+                  onUpdateManagers={handleUpdateManagers}
+                />
+              </div>
+            )}
+            
             <div className="flex space-x-4 pt-4">
               <Button 
                 type="submit" 
                 disabled={isSubmitting || !formData.city || !formData.region}
               >
-                {isSubmitting ? 'Menyimpan...' : 'Simpan Subject Form'}
+                {isSubmitting ? 'Memperbarui...' : 'Perbarui Subject Form'}
               </Button>
               <Link href="/dashboard/stores">
                 <Button variant="outline">Batal</Button>

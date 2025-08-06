@@ -47,6 +47,24 @@ export default function SurveyPage() {
   };
   
   const handleNext = () => {
+    // Check mandatory questions for current section
+    if (currentGroup?.mandatoryQuestionIds) {
+      const unansweredMandatory = currentGroup.mandatoryQuestionIds.filter(questionId => {
+        const answer = responses[questionId];
+        return !answer || (typeof answer === 'string' && answer.trim() === '');
+      });
+      
+      if (unansweredMandatory.length > 0) {
+        const unansweredQuestions = unansweredMandatory.map(questionId => {
+          const question = questions.find(q => q.id === questionId);
+          return question?.text;
+        }).filter(Boolean);
+        
+        alert(`Mohon lengkapi pertanyaan wajib berikut:\n• ${unansweredQuestions.join('\n• ')}`);
+        return;
+      }
+    }
+    
     if (currentSection < assignedGroups.length - 1) {
       setCurrentSection(prev => prev + 1);
     }
@@ -59,6 +77,44 @@ export default function SurveyPage() {
   };
   
   const handleSubmit = async () => {
+    // Final validation for all mandatory questions
+    const allUnansweredMandatory: { groupName: string; questions: string[] }[] = [];
+    
+    assignedGroups.forEach(group => {
+      if (group?.mandatoryQuestionIds && group.mandatoryQuestionIds.length > 0) {
+        const unansweredMandatory = group.mandatoryQuestionIds.filter(questionId => {
+          const answer = responses[questionId];
+          return !answer || (typeof answer === 'string' && answer.trim() === '');
+        });
+        
+        if (unansweredMandatory.length > 0) {
+          const unansweredQuestions = unansweredMandatory.map(questionId => {
+            const question = questions.find(q => q.id === questionId);
+            return question?.text;
+          }).filter(Boolean);
+          
+          allUnansweredMandatory.push({
+            groupName: group.name,
+            questions: unansweredQuestions as string[]
+          });
+        }
+      }
+    });
+    
+    if (allUnansweredMandatory.length > 0) {
+      let alertMessage = 'Masih ada pertanyaan wajib yang belum dijawab:\n\n';
+      allUnansweredMandatory.forEach(({ groupName, questions }) => {
+        alertMessage += `${groupName}:\n`;
+        questions.forEach(question => {
+          alertMessage += `• ${question}\n`;
+        });
+        alertMessage += '\n';
+      });
+      alert(alertMessage);
+      setIsSubmitting(false);
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       // Siapkan data answers dengan format yang benar dan urutan yang tepat
@@ -233,7 +289,12 @@ export default function SurveyPage() {
             
             return (
               <div key={question.id} className="space-y-2">
-                <label className="block font-medium">{question.text}</label>
+                <label className="block font-medium">
+                  {question.text}
+                  {currentGroup?.mandatoryQuestionIds?.includes(question.id) && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
+                </label>
                 
                 {question.type === 'text' && (
                   <input

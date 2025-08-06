@@ -9,11 +9,14 @@ import { Plus, Search, Edit, Trash2, QrCode, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useStores } from '@/hooks/useStores';
 import { useQuestionGroups } from '@/hooks/useQuestionGroups';
+import { StoreAccessService } from '@/lib/storeAccessService';
+import { useAuth } from '@/contexts/AuthContext';
 import { generateStoreQRUrl } from '@/lib/utils';
 import { QRPopup } from '@/components/ui/qr-popup';
 
 export default function StoresPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   
@@ -24,17 +27,20 @@ export default function StoresPage() {
   const { stores, loading, error, deleteStore, updateStore } = useStores();
   const { questionGroups } = useQuestionGroups();
 
-  const filteredStores = stores.filter(store => 
+  // Filter stores based on access control
+  const accessibleStores = StoreAccessService.filterAccessibleStores(user, stores);
+  
+  const filteredStores = accessibleStores.filter(store => 
     store.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     store.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDelete = async (id: string) => {
-    if (confirm('Apakah Anda yakin ingin menghapus toko ini?')) {
+    if (confirm('Apakah Anda yakin ingin menghapus Subject Form ini?')) {
       try {
         await deleteStore(id);
       } catch (error) {
-        alert('Gagal menghapus toko');
+        alert('Gagal menghapus Subject Form');
       }
     }
   };
@@ -45,8 +51,6 @@ export default function StoresPage() {
     setShowQRPopup(true);
   };
 
-
-
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -54,16 +58,18 @@ export default function StoresPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manajemen Toko</h1>
-          <p className="text-gray-600">Kelola data toko dan grup pertanyaan</p>
+          <h1 className="text-3xl font-bold text-gray-900">Manajemen Subject Form</h1>
+          <p className="text-gray-600">Kelola data Subject Form dan grup pertanyaan</p>
         </div>
         <div className="flex space-x-2">
-          <Link href="/dashboard/stores/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Toko
-            </Button>
-          </Link>
+          {StoreAccessService.canCreateStore(user) && (
+            <Link href="/dashboard/stores/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Subject Form
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -72,7 +78,7 @@ export default function StoresPage() {
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Cari toko atau alamat..."
+              placeholder="Cari Subject Form atau alamat..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -118,7 +124,7 @@ export default function StoresPage() {
                       <QrCode className="h-4 w-4" />
                     </Button>
                     <Link href={`/dashboard/stores/${store.id}/edit`}>
-                      <Button variant="outline" size="sm" title="Edit Toko">
+                      <Button variant="outline" size="sm" title="Edit Subject Form">
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
@@ -126,7 +132,7 @@ export default function StoresPage() {
                       variant="destructive" 
                       size="sm" 
                       onClick={() => handleDelete(store.id!)}
-                      title="Hapus Toko"
+                      title="Hapus Subject Form"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

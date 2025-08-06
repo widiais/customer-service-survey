@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Search, Filter, Download } from 'lucide-react';
+import { Eye, Search, Filter, Download, Trash2 } from 'lucide-react';
 import { useStores } from '@/hooks/useStores';
+import { StoreAccessService } from '@/lib/storeAccessService';
+import { SurveyService } from '@/lib/surveyService';
+import { useAuth } from '@/contexts/AuthContext';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -25,11 +28,14 @@ interface SurveyResponse {
 
 export default function SurveyResultsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { stores } = useStores();
   const [searchTerm, setSearchTerm] = useState('');
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState<string>('all');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Fetch data dari Firestore
   useEffect(() => {
@@ -38,8 +44,11 @@ export default function SurveyResultsPage() {
         setLoading(true);
         const responsesData: SurveyResponse[] = [];
         
-        // Fetch responses dari semua toko
-        for (const store of stores) {
+        // Filter stores based on user access
+        const accessibleStores = StoreAccessService.filterAccessibleStores(user, stores);
+        
+        // Fetch responses dari toko yang dapat diakses
+        for (const store of accessibleStores) {
           const responsesRef = collection(db, `stores/${store.id}/responses`);
           const responsesQuery = query(responsesRef, orderBy('submittedAt', 'desc'));
           const responsesSnapshot = await getDocs(responsesQuery);
@@ -70,7 +79,7 @@ export default function SurveyResultsPage() {
     if (stores.length > 0) {
       fetchSurveyResponses();
     }
-  }, [stores]);
+  }, [stores, user, refreshTrigger]);
 
   const filteredResponses = responses.filter(response => {
     const matchesSearch = response.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,6 +90,49 @@ export default function SurveyResultsPage() {
 
   const handleViewDetail = (responseId: string, storeId: string) => {
     router.push(`/dashboard/survey/results/${storeId}/${responseId}`);
+  };
+
+  const handleDeleteResponse = async (responseId: string, storeId: string) => {
+    // Find the store to check permissions
+    const store = stores.find(s => s.id === storeId);
+    if (!store || !user) return;
+
+    // Check if user can delete this response
+    if (!SurveyService.canDeleteSurveyResponse(user, store)) {
+      alert('Anda tidak memiliki izin untuk menghapus hasil survey ini');
+      return;
+    }
+
+    const confirmed = confirm(
+      'Apakah Anda yakin ingin menghapus hasil survey ini?\n\nTindakan ini tidak dapat dibatalkan.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(responseId);
+      
+      // Delete from the correct collection path
+      await SurveyService.deleteSurveyResponse(`stores/${storeId}/responses/${responseId}`);
+      
+      // Refresh the data
+      setRefreshTrigger(prev => prev + 1);
+      
+      alert('Hasil survey berhasil dihapus');
+    } catch (error) {
+      console.error('Error deleting survey response:', error);
+      alert('Gagal menghapus hasil survey. Silakan coba lagi.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // Check if user can delete responses for a store
+  const canDeleteResponse = (storeId: string): boolean => {
+    if (!user) return false;
+    const store = stores.find(s => s.id === storeId);
+    if (!store) return false;
+    return SurveyService.canDeleteSurveyResponse(user, store);
   };
 
   if (loading) {
@@ -125,7 +177,7 @@ export default function SurveyResultsPage() {
               className="px-3 py-2 border border-gray-300 rounded-md"
             >
               <option value="all">Semua Toko</option>
-              {stores.map(store => (
+              {StoreAccessService.filterAccessibleStores(user, stores).map(store => (
                 <option key={store.id} value={store.id}>{store.name}</option>
               ))}
             </select>
@@ -159,13 +211,33 @@ export default function SurveyResultsPage() {
                     <span>Grup: {response.questionGroupNames.join(', ')}</span>
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleViewDetail(response.id, response.storeId)}
-                >
-                  <Eye className="h-4 w-4 mr-1" />
-                  Lihat Detail
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleViewDetail(response.id, response.storeId)}
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Lihat Detail
+                  </Button>
+                  
+                  {canDeleteResponse(response.storeId) && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteResponse(response.id, response.storeId)}
+                      disabled={deletingId === response.id}
+                    >
+                      {deletingId === response.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      ) : (
+                        <>
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Hapus
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
             

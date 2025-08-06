@@ -9,9 +9,11 @@ interface Props {
   index: number;
   onRemove: (id: string) => void;
   categories: Category[];
+  isMandatory?: boolean;
+  onToggleMandatory?: (id: string) => void;
 }
 
-export function SortableQuestionItem({ question, index, onRemove, categories }: Props) {
+export function SortableQuestionItem({ question, index, onRemove, categories, isMandatory, onToggleMandatory }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: question.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
   
@@ -34,7 +36,7 @@ export function SortableQuestionItem({ question, index, onRemove, categories }: 
           </div>
         </div>
         <div className="col-span-1"><span className="text-sm font-medium text-gray-600">#{index + 1}</span></div>
-        <div className="col-span-9">
+        <div className="col-span-8">
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-900">{question.text}</p>
             <div className="flex items-center gap-2">
@@ -42,8 +44,27 @@ export function SortableQuestionItem({ question, index, onRemove, categories }: 
                 {getTypeLabel(question.type)}
               </span>
               {categoryBadge}
+              {isMandatory && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  Wajib
+                </span>
+              )}
             </div>
           </div>
+        </div>
+        <div className="col-span-1 flex justify-center">
+          {onToggleMandatory && (
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isMandatory || false}
+                onChange={() => onToggleMandatory(question.id)}
+                className="mr-1"
+                title="Tandai sebagai wajib"
+              />
+              <span className="text-xs text-red-600 font-medium">Wajib</span>
+            </label>
+          )}
         </div>
         <div className="col-span-1 flex justify-center">
           <button type="button" onClick={() => onRemove(question.id)} className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors" title="Hapus pertanyaan">

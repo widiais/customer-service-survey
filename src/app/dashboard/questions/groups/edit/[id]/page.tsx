@@ -13,6 +13,7 @@ interface GroupFormData {
   name: string;
   description: string;
   questionIds: string[];
+  mandatoryQuestionIds: string[];
   isActive: boolean;
 }
 
@@ -23,7 +24,7 @@ export default function EditQuestionGroupPage() {
   const { questionGroups, updateQuestionGroup, loading: groupsLoading } = useQuestionGroups();
   const { questions, loading: questionsLoading } = useQuestions();
   const { categories, loading: categoriesLoading } = useCategories();
-  const [formData, setFormData] = useState<GroupFormData>({ name: '', description: '', questionIds: [], isActive: true });
+  const [formData, setFormData] = useState<GroupFormData>({ name: '', description: '', questionIds: [], mandatoryQuestionIds: [], isActive: true });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [groupFound, setGroupFound] = useState(false);
 
@@ -31,7 +32,13 @@ export default function EditQuestionGroupPage() {
     if (!groupsLoading && questionGroups.length > 0) {
       const group = questionGroups.find(g => g.id === groupId);
       if (group) {
-        setFormData({ name: group.name, description: group.description || '', questionIds: group.questionIds, isActive: group.isActive });
+        setFormData({ 
+          name: group.name, 
+          description: group.description || '', 
+          questionIds: group.questionIds, 
+          mandatoryQuestionIds: group.mandatoryQuestionIds || [],
+          isActive: group.isActive 
+        });
         setGroupFound(true);
       }
     }
@@ -42,7 +49,13 @@ export default function EditQuestionGroupPage() {
     if (!formData.name.trim()) { alert('Mohon masukkan nama grup'); return; }
     setIsSubmitting(true);
     try {
-      const groupData: Partial<QuestionGroup> = { name: formData.name.trim(), description: formData.description.trim(), questionIds: formData.questionIds, isActive: formData.isActive };
+      const groupData: Partial<QuestionGroup> = { 
+        name: formData.name.trim(), 
+        description: formData.description.trim(), 
+        questionIds: formData.questionIds, 
+        mandatoryQuestionIds: formData.mandatoryQuestionIds,
+        isActive: formData.isActive 
+      };
       await updateQuestionGroup(groupId, groupData);
       alert('Grup pertanyaan berhasil diperbarui!');
       router.push('/dashboard/questions/groups');
@@ -61,7 +74,20 @@ export default function EditQuestionGroupPage() {
   };
 
   const removeQuestion = (questionId: string) => {
-    setFormData(prev => ({ ...prev, questionIds: prev.questionIds.filter(id => id !== questionId) }));
+    setFormData(prev => ({ 
+      ...prev, 
+      questionIds: prev.questionIds.filter(id => id !== questionId),
+      mandatoryQuestionIds: prev.mandatoryQuestionIds.filter(id => id !== questionId)
+    }));
+  };
+
+  const toggleMandatory = (questionId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      mandatoryQuestionIds: prev.mandatoryQuestionIds.includes(questionId)
+        ? prev.mandatoryQuestionIds.filter(id => id !== questionId)
+        : [...prev.mandatoryQuestionIds, questionId]
+    }));
   };
 
   const getQuestionById = (questionId: string) => questions.find(q => q.id === questionId);
@@ -107,6 +133,7 @@ export default function EditQuestionGroupPage() {
           onSubmit={handleSubmit}
           onCancel={() => router.push('/dashboard/questions/groups')}
           onRemoveQuestion={removeQuestion}
+          onToggleMandatory={toggleMandatory}
         />
 
         <AvailableQuestions

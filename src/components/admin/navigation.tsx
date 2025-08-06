@@ -1,36 +1,117 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Store, FileText, HelpCircle, LogOut, Plus, Users, Tag, ChevronRight, BarChart3, ClipboardList, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Store, FileText, HelpCircle, LogOut, Plus, Users, Tag, ChevronRight, BarChart3, ClipboardList, Menu, X, UserCog, LucideIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { User } from '@/lib/types';
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/stores', label: 'Toko', icon: Store },
-  {
-    href: '/dashboard/survey',
-    label: 'Survey',
-    icon: FileText,
-    submenu: [
-      { href: '/dashboard/survey/results', label: 'Hasil Survey', icon: ClipboardList },
-      { href: '/dashboard/survey/analytics', label: 'Analytics', icon: BarChart3 },
-    ]
-  },
-  {
-    href: '/dashboard/questions',
-    label: 'Pertanyaan',
-    icon: HelpCircle,
-    submenu: [
-      { href: '/dashboard/questions/create', label: 'Buat Pertanyaan', icon: Plus },
-      { href: '/dashboard/questions/groups', label: 'Grup Pertanyaan', icon: Users },
-      { href: '/dashboard/questions/categories', label: 'Kategori', icon: Tag },
-      { href: '/dashboard/questions/collection', label: 'Koleksi', icon: Tag },
-    ]
-  },
-];
+interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  submenu?: Array<{
+    href: string;
+    label: string;
+    icon: LucideIcon;
+  }>;
+}
+
+const getNavItems = (user: User | null): NavItem[] => {
+  const items: NavItem[] = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }
+  ];
+
+  // Super admin has access to everything
+  if (user?.role === 'super_admin') {
+    items.push(
+      { href: '/dashboard/stores', label: 'Subject', icon: Store },
+      {
+        href: '/dashboard/survey',
+        label: 'Survey',
+        icon: FileText,
+        submenu: [
+          { href: '/dashboard/survey/results', label: 'Hasil Survey', icon: ClipboardList },
+          { href: '/dashboard/survey/analytics', label: 'Analytics', icon: BarChart3 },
+        ]
+      },
+      {
+        href: '/dashboard/questions',
+        label: 'Pertanyaan',
+        icon: HelpCircle,
+        submenu: [
+          { href: '/dashboard/questions/create', label: 'Buat Pertanyaan', icon: Plus },
+          { href: '/dashboard/questions/groups', label: 'Grup Pertanyaan', icon: Users },
+          { href: '/dashboard/questions/categories', label: 'Kategori', icon: Tag },
+          { href: '/dashboard/questions/collection', label: 'Koleksi', icon: Tag },
+        ]
+      },
+      {
+        href: '/dashboard/users',
+        label: 'User Management',
+        icon: UserCog,
+        submenu: [
+          { href: '/dashboard/users', label: 'Kelola User', icon: Users },
+          { href: '/dashboard/users/new', label: 'Buat User Baru', icon: Plus },
+        ]
+      }
+    );
+    return items;
+  }
+
+  // For regular users, check permissions
+  if (user?.permissions) {
+    // Subject access
+    if (user.permissions.subject) {
+      items.push({ href: '/dashboard/stores', label: 'Subject', icon: Store });
+    }
+
+    // Survey access
+    const surveySubmenu = [];
+    if (user.permissions.survey.results) {
+      surveySubmenu.push({ href: '/dashboard/survey/results', label: 'Hasil Survey', icon: ClipboardList });
+    }
+    if (user.permissions.survey.analytics) {
+      surveySubmenu.push({ href: '/dashboard/survey/analytics', label: 'Analytics', icon: BarChart3 });
+    }
+    if (surveySubmenu.length > 0) {
+      items.push({
+        href: '/dashboard/survey',
+        label: 'Survey',
+        icon: FileText,
+        submenu: surveySubmenu
+      });
+    }
+
+    // Questions access
+    const questionsSubmenu = [];
+    if (user.permissions.questions.create) {
+      questionsSubmenu.push({ href: '/dashboard/questions/create', label: 'Buat Pertanyaan', icon: Plus });
+    }
+    if (user.permissions.questions.groups) {
+      questionsSubmenu.push({ href: '/dashboard/questions/groups', label: 'Grup Pertanyaan', icon: Users });
+    }
+    if (user.permissions.questions.categories) {
+      questionsSubmenu.push({ href: '/dashboard/questions/categories', label: 'Kategori', icon: Tag });
+    }
+    if (user.permissions.questions.collection) {
+      questionsSubmenu.push({ href: '/dashboard/questions/collection', label: 'Koleksi', icon: Tag });
+    }
+    if (questionsSubmenu.length > 0) {
+      items.push({
+        href: '/dashboard/questions',
+        label: 'Pertanyaan',
+        icon: HelpCircle,
+        submenu: questionsSubmenu
+      });
+    }
+  }
+
+  return items;
+};
 
 interface NavigationProps {
   isMobileMenuOpen?: boolean;
@@ -39,13 +120,22 @@ interface NavigationProps {
 
 export function Navigation({ isMobileMenuOpen = false, onMobileMenuToggle }: NavigationProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout, user } = useAuth();
+  const navItems = getNavItems(user);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(
     pathname.startsWith('/dashboard/questions') ? '/dashboard/questions' :
-    pathname.startsWith('/dashboard/survey') ? '/dashboard/survey' : null
+    pathname.startsWith('/dashboard/survey') ? '/dashboard/survey' :
+    pathname.startsWith('/dashboard/users') ? '/dashboard/users' : null
   );
 
   const toggleMenu = (href: string) => {
     setExpandedMenu(expandedMenu === href ? null : href);
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
   };
 
   const handleLinkClick = () => {
@@ -83,7 +173,7 @@ export function Navigation({ isMobileMenuOpen = false, onMobileMenuToggle }: Nav
         </div>
         
         <div className="p-6">
-          <h1 className="text-xl font-bold text-gray-900">Labbaik Chicken</h1>
+          <h1 className="text-xl font-bold text-gray-900">Super Form</h1>
           <p className="text-sm text-gray-500">Admin Panel</p>
         </div>
         
@@ -157,8 +247,17 @@ export function Navigation({ isMobileMenuOpen = false, onMobileMenuToggle }: Nav
           })}
         </div>
         
-        <div className="absolute bottom-4 left-4 right-4">
-          <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50">
+        <div className="absolute bottom-4 left-4 right-4 space-y-2">
+          {user && (
+            <div className="px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded">
+              {user.name}
+            </div>
+          )}
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={handleLogout}
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>

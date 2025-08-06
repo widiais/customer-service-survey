@@ -5,9 +5,12 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Download, User, Store, Calendar } from 'lucide-react';
+import { ArrowLeft, Download, User, Store, Calendar, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { doc, getDoc } from 'firebase/firestore';
+import { SurveyService } from '@/lib/surveyService';
+import { useStores } from '@/hooks/useStores';
+import { useAuth } from '@/contexts/AuthContext';
 import { db } from '@/lib/firebase';
 
 interface QuestionAnswer {
@@ -61,9 +64,12 @@ export default function SurveyDetailPage() {
   const params = useParams();
   const responseId = params.id as string;
   const storeId = params.storeId as string;
+  const { user } = useAuth();
+  const { stores } = useStores();
   
   const [surveyDetail, setSurveyDetail] = useState<SurveyDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchSurveyDetail = async () => {
@@ -183,6 +189,47 @@ export default function SurveyDetailPage() {
     }
   }, [responseId, storeId]);
 
+  const handleDeleteResponse = async () => {
+    // Find the store to check permissions
+    const store = stores.find(s => s.id === storeId);
+    if (!store || !user) return;
+
+    // Check if user can delete this response
+    if (!SurveyService.canDeleteSurveyResponse(user, store)) {
+      alert('Anda tidak memiliki izin untuk menghapus hasil survey ini');
+      return;
+    }
+
+    const confirmed = confirm(
+      'Apakah Anda yakin ingin menghapus hasil survey ini?\n\nTindakan ini tidak dapat dibatalkan dan Anda akan diarahkan kembali ke daftar hasil survey.'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeleting(true);
+      
+      // Delete from the correct collection path
+      await SurveyService.deleteSurveyResponse(`stores/${storeId}/responses/${responseId}`);
+      
+      alert('Hasil survey berhasil dihapus');
+      router.push('/dashboard/survey/results');
+    } catch (error) {
+      console.error('Error deleting survey response:', error);
+      alert('Gagal menghapus hasil survey. Silakan coba lagi.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Check if user can delete this response
+  const canDelete = (): boolean => {
+    if (!user) return false;
+    const store = stores.find(s => s.id === storeId);
+    if (!store) return false;
+    return SurveyService.canDeleteSurveyResponse(user, store);
+  };
+
   const renderAnswer = (answer: QuestionAnswer) => {
     switch (answer.questionType) {
       case 'rating':
@@ -248,10 +295,29 @@ export default function SurveyDetailPage() {
           <h1 className="text-3xl font-bold text-gray-900">Detail Hasil Survey</h1>
           <p className="text-gray-600">ID: {surveyDetail.id}</p>
         </div>
-        <Button>
-          <Download className="h-4 w-4 mr-2" />
-          Export PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button>
+            <Download className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
+          
+          {canDelete() && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteResponse}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Hapus Survey
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Customer & Store Info */}

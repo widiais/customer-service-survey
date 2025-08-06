@@ -69,7 +69,7 @@ export default function AssignGroupsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Pilih Grup Pertanyaan</h1>
-          <p className="text-gray-600">Toko: {currentStore?.name}</p>
+          <p className="text-gray-600">Subject Form: {currentStore?.name}</p>
         </div>
         <div className="space-x-2">
           <Button variant="outline" onClick={() => router.back()}>Batal</Button>

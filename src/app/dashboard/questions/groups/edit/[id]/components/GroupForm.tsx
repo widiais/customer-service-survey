@@ -7,6 +7,7 @@ interface GroupFormData {
   name: string;
   description: string;
   questionIds: string[];
+  mandatoryQuestionIds: string[];
   isActive: boolean;
 }
 
@@ -19,9 +20,10 @@ interface Props {
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   onRemoveQuestion: (questionId: string) => void;
+  onToggleMandatory: (questionId: string) => void;
 }
 
-export function GroupForm({ formData, setFormData, selectedQuestions, categories, isSubmitting, onSubmit, onCancel, onRemoveQuestion }: Props) {
+export function GroupForm({ formData, setFormData, selectedQuestions, categories, isSubmitting, onSubmit, onCancel, onRemoveQuestion, onToggleMandatory }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -70,7 +72,15 @@ export function GroupForm({ formData, setFormData, selectedQuestions, categories
             <SortableContext items={formData.questionIds} strategy={verticalListSortingStrategy}>
               <div className="space-y-3">
                 {selectedQuestions.map((question, index) => (
-                  <SortableQuestionItem key={question.id} question={question} index={index} onRemove={onRemoveQuestion} categories={categories} />
+                  <SortableQuestionItem 
+                    key={question.id} 
+                    question={question} 
+                    index={index} 
+                    onRemove={onRemoveQuestion} 
+                    categories={categories}
+                    isMandatory={formData.mandatoryQuestionIds.includes(question.id)}
+                    onToggleMandatory={onToggleMandatory}
+                  />
                 ))}
               </div>
             </SortableContext>
