@@ -27,6 +27,12 @@ export default function SurveyPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [showCustomerForm, setShowCustomerForm] = useState(true);
   
+  // Validasi sederhana format nomor WhatsApp Indonesia
+  const isValidWhatsApp = (value: string) => {
+    const normalized = value.replace(/\s|-/g, '');
+    return /^(\+62|62|0)8[1-9][0-9]{7,12}$/.test(normalized);
+  };
+  
   const store = stores.find(s => s.id === storeId);
   // Perbaikan urutan grup - pertahankan urutan sesuai questionGroupIds
   const assignedGroups = store?.questionGroupIds?.map(groupId => 
@@ -173,7 +179,7 @@ export default function SurveyPage() {
         submittedAt: new Date().toISOString(),
         customerInfo: {
           name: customerName || 'Pelanggan',
-          phone: customerPhone || '',
+          phone: customerPhone,
           userAgent: navigator.userAgent,
           timestamp: Date.now()
         },
@@ -220,29 +226,38 @@ export default function SurveyPage() {
               <input
                 type="text"
                 value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
+                onChange={(e) => setCustomerName(e.target.value)} 
                 className="w-full p-2 border border-gray-300 rounded-md"
                 placeholder="Masukkan nama lengkap Anda"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Nomor Telepon (Opsional)</label>
+              <label className="block text-sm font-medium mb-2">Nomor WhatsApp <span className="text-red-500">*</span></label>
               <input
                 type="tel"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Masukkan nomor telepon Anda"
+                placeholder="Contoh: 08xxxxxxxxxx atau +628xxxxxxxxxx"
+                required
               />
             </div>
             <Button 
               onClick={() => {
-                if (customerName.trim()) {
-                  setShowCustomerForm(false);
-                } else {
+                if (!customerName.trim()) {
                   alert('Nama harus diisi');
+                  return;
                 }
+                if (!customerPhone.trim()) {
+                  alert('Nomor WhatsApp harus diisi');
+                  return;
+                }
+                if (!isValidWhatsApp(customerPhone)) {
+                  alert('Format nomor WhatsApp tidak valid. Gunakan 08xxxxxxxxxx atau +628xxxxxxxxxx');
+                  return;
+                }
+                setShowCustomerForm(false);
               }}
               className="w-full"
             >
@@ -258,7 +273,7 @@ export default function SurveyPage() {
     <div className="max-w-2xl mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">{store.name}</h1>
-        <p className="text-gray-600">Survey Kepuasan Pelanggan</p>
+        <p className="text-gray-600">Internal Survey System</p>
         
         {/* Progress */}
         <div className="mt-4">
