@@ -11,9 +11,7 @@ export default function SurveyLayout({
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Super Survey Form
             </h1>
-            <p className="text-gray-600">
-              Survei Kepuasan Pelanggan
-            </p>
+            {/* Menghapus baris "Survei Kepuasan Pelanggan" */}
           </div>
           {children}
         </div>
