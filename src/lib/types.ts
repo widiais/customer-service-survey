@@ -37,6 +37,7 @@ export interface Store {
   questionGroupIds?: string[];
   createdBy: string; // User ID of creator
   managers: string[]; // Array of User IDs who can manage this store
+  logoUrl?: string; // URL logo store
 }
 
 export interface CustomerInfo {
