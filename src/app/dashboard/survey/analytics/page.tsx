@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Badge } from '@/components/ui/badge';
-import { Download, Filter } from 'lucide-react';
+import { Download, Filter, FileSpreadsheet } from 'lucide-react';
 import { useStores } from '@/hooks/useStores';
 import { useQuestionGroups } from '@/hooks/useQuestionGroups';
 import { useQuestions } from '@/hooks/useQuestions';
@@ -60,17 +60,17 @@ export default function SurveyAnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([]);
 
   // Fetch survey responses
-  const fetchResponses = async () => {
+  const fetchResponses = useCallback(async () => {
     if (selectedStores.length === 0) return;
-    
+
     setLoading(true);
     try {
       const allResponses: SurveyResponse[] = [];
-      
+
       for (const storeId of selectedStores) {
         const responsesRef = collection(db, `stores/${storeId}/responses`);
         const snapshot = await getDocs(responsesRef);
-        
+
         snapshot.docs.forEach(doc => {
           const data = doc.data();
           allResponses.push({
@@ -85,14 +85,14 @@ export default function SurveyAnalyticsPage() {
           });
         });
       }
-      
+
       setResponses(allResponses);
     } catch (error) {
       console.error('Error fetching responses:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedStores]);
 
   // Process analytics data
   useEffect(() => {
@@ -212,7 +212,7 @@ export default function SurveyAnalyticsPage() {
     if (selectedStores.length > 0) {
       fetchResponses();
     }
-  }, [selectedStores]);
+  }, [selectedStores, fetchResponses]);
 
   // Prepare options for multi-select (filter based on access)
   const accessibleStores = StoreAccessService.filterAccessibleStores(user, stores);
@@ -253,7 +253,7 @@ export default function SurveyAnalyticsPage() {
     }));
   }, [selectedGroups, questions, questionGroups]);
 
-  // Export to Excel
+  // Export to Excel (current format)
   const exportToExcel = () => {
     const exportData = analyticsData.map(item => ({
       'Nama Toko': item.storeName,
@@ -265,36 +265,73 @@ export default function SurveyAnalyticsPage() {
       'Jawaban': item.answer,
       'Tanggal Submit': new Date(item.submittedAt).toLocaleDateString('id-ID')
     }));
-    
+
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Analytics Data');
-    
+
     const fileName = `survey-analytics-${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const totalResponses = new Set(analyticsData.map(item => 
-      `${item.storeName}-${item.customerName}-${item.submittedAt}`
-    )).size;
-    
-    const ratingAnswers = analyticsData.filter(item => item.questionType === 'rating');
-    const avgRating = ratingAnswers.length > 0 
-      ? (ratingAnswers.reduce((sum, item) => sum + Number(item.answer), 0) / ratingAnswers.length).toFixed(1)
-      : '0';
-    
-    const uniqueStores = new Set(analyticsData.map(item => item.storeName)).size;
-    const uniqueQuestions = new Set(analyticsData.map(item => item.questionId)).size;
-    
-    return {
-      totalResponses,
-      avgRating,
-      uniqueStores,
-      uniqueQuestions
-    };
-  }, [analyticsData]);
+  // Export to Excel - Flat format (questions as columns)
+  const exportFlatToExcel = () => {
+    if (analyticsData.length === 0) return;
+
+    // Group data by customer and store (to create unique rows)
+    const customerRows = new Map<string, Record<string, string | number>>();
+
+    analyticsData.forEach(item => {
+      const key = `${item.storeName}-${item.customerName}-${item.customerPhone}-${item.submittedAt}`;
+
+      if (!customerRows.has(key)) {
+        customerRows.set(key, {
+          'Nama': item.customerName,
+          'Whatsapp': item.customerPhone,
+          'Toko': item.storeName,
+          'Tanggal Submit': new Date(item.submittedAt).toLocaleDateString('id-ID'),
+          // We'll add question columns dynamically
+        });
+      }
+
+      // Add the question answer to the row
+      const row = customerRows.get(key);
+      if (row) {
+        row[item.questionText] = item.answer;
+      }
+    });
+
+    // Get all unique questions for headers (after Nama, Whatsapp, Toko, Tanggal Submit)
+    const allQuestions = new Set<string>();
+    analyticsData.forEach(item => {
+      allQuestions.add(item.questionText);
+    });
+
+    // Create headers array
+    const headers = ['Nama', 'Whatsapp', 'Toko', 'Tanggal Submit', ...Array.from(allQuestions)];
+
+    // Convert map to array and ensure all columns exist
+    const exportData = Array.from(customerRows.values()).map(row => {
+      const result: Record<string, string | number> = { ...row };
+      // Ensure all question columns exist (fill with empty string if no answer)
+      Array.from(allQuestions).forEach(question => {
+        if (!(question in result)) {
+          result[question] = '';
+        }
+      });
+      return result;
+    });
+
+    // Create and download Excel file
+    const ws = XLSX.utils.json_to_sheet(exportData, { header: headers });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses - Flat');
+
+    const fileName = `survey-responses-flat-${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
+
 
   return (
     <div className="space-y-6">
@@ -351,10 +388,16 @@ export default function SurveyAnalyticsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Hasil Analytics ({analyticsData.length} data)</CardTitle>
-            <Button onClick={exportToExcel} disabled={analyticsData.length === 0}>
-              <Download className="h-4 w-4 mr-2" />
-              Export Excel
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={exportFlatToExcel} disabled={analyticsData.length === 0}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export Flat Excel
+              </Button>
+              <Button onClick={exportToExcel} disabled={analyticsData.length === 0}>
+                <Download className="h-4 w-4 mr-2" />
+                Export Excel
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
