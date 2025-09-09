@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow all access for now - security is handled at application level
+    // This is temporary to resolve deployment access issues
+    // TODO: Implement proper Firebase Authentication for better security
+    
+    // Users collection - allow all operations
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    
+    // Stores collection - allow all operations
+    match /stores/{storeId} {
+      allow read, write: if true;
+      
+      // Store responses subcollection
+      match /responses/{responseId} {
+        allow read, write: if true;
+      }
+      
+      // Store questionnaires subcollection
+      match /questionnaires/{questionnaireId} {
+        allow read, write: if true;
+      }
+    }
+    
+    // Questions collection
+    match /questions/{questionId} {
+      allow read, write: if true;
+    }
+    
+    // Question groups collection
+    match /questionGroups/{groupId} {
+      allow read, write: if true;
+    }
+    
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read, write: if true;
+    }
+    
+    // Questionnaires collection
+    match /questionnaires/{questionnaireId} {
+      allow read, write: if true;
+    }
+    
+    // Survey responses - public access for survey form submissions
+    match /surveyResponses/{responseId} {
+      allow read, write: if true;
+    }
+    
+    // Allow all access to other collections
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is super admin
+    function isSuperAdmin(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+             get(/databases/$(database)/documents/users/$(userId)).data.role == 'super_admin';
+    }
+    
+    // Helper function to check if user can access store
+    function canAccessStore(userId, storeId) {
+      return exists(/databases/$(database)/documents/stores/$(storeId)) &&
+             (get(/databases/$(database)/documents/stores/$(storeId)).data.createdBy == userId ||
+              userId in get(/databases/$(database)/documents/stores/$(storeId)).data.managers ||
+              isSuperAdmin(userId));
+    }
+    
+    // Helper function to check if user has admin role
+    function isAdmin(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+             get(/databases/$(database)/documents/users/$(userId)).data.role in ['super_admin', 'admin'];
+    }
+    
+    // Users collection - allow read for authenticated users, write for admins only
+    match /users/{userId} {
+      allow read: if request.auth != null && 
+                     (request.auth.uid == userId || 
+                      isSuperAdmin(request.auth.uid) || 
+                      isAdmin(request.auth.uid));
+      allow write: if request.auth != null && 
+                      (isSuperAdmin(request.auth.uid) || 
+                       isAdmin(request.auth.uid));
+    }
+    
+    // Stores collection - allow access based on user permissions
+    match /stores/{storeId} {
+      allow read: if request.auth != null && 
+                     (isSuperAdmin(request.auth.uid) || 
+                      canAccessStore(request.auth.uid, storeId));
+      allow write: if request.auth != null && 
+                      (isSuperAdmin(request.auth.uid) || 
+                       isAdmin(request.auth.uid));
+      
+      // Store responses subcollection - accessible by store managers
+      match /responses/{responseId} {
+        allow read, write: if request.auth != null && 
+                              (isSuperAdmin(request.auth.uid) || 
+                               canAccessStore(request.auth.uid, storeId));
+      }
+      
+      // Store questionnaires subcollection
+      match /questionnaires/{questionnaireId} {
+        allow read, write: if request.auth != null && 
+                              (isSuperAdmin(request.auth.uid) || 
+                               canAccessStore(request.auth.uid, storeId));
+      }
+    }
+    
+    // Questions collection - allow access for store managers and admins
+    match /questions/{questionId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      (isSuperAdmin(request.auth.uid) || 
+                       isAdmin(request.auth.uid));
+    }
+    
+    // Question groups collection - allow access for store managers and admins
+    match /questionGroups/{groupId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      (isSuperAdmin(request.auth.uid) || 
+                       isAdmin(request.auth.uid));
+    }
+    
+    // Categories collection - allow access for admins
+    match /categories/{categoryId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      (isSuperAdmin(request.auth.uid) || 
+                       isAdmin(request.auth.uid));
+    }
+    
+    // Questionnaires collection - global questionnaires, allow read for authenticated users
+    match /questionnaires/{questionnaireId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                      (isSuperAdmin(request.auth.uid) || 
+                       isAdmin(request.auth.uid));
+    }
+    
+    // Survey responses - public read/write for survey form submissions
+    // This allows anonymous users to submit surveys
+    match /surveyResponses/{responseId} {
+      allow read, write: if true; // Allow public access for survey submissions
+    }
+    
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
