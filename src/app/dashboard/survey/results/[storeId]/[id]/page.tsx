@@ -254,6 +254,20 @@ export default function SurveyDetailPage() {
             {answer.answer}
           </Badge>
         );
+      case 'checklist':
+        const checklistAnswers = Array.isArray(answer.answer) ? answer.answer : [answer.answer];
+        return (
+          <div className="space-y-2">
+            {checklistAnswers.map((item, index) => (
+              <Badge key={index} variant="outline" className="text-sm mr-2 mb-2">
+                {item}
+              </Badge>
+            ))}
+            <div className="text-xs text-gray-500 mt-1">
+              {checklistAnswers.length} pilihan dipilih
+            </div>
+          </div>
+        );
       case 'text':
       default:
         return (

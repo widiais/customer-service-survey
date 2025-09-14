@@ -355,6 +355,60 @@ export default function SurveyPage() {
                     ))}
                   </div>
                 )}
+
+                {question.type === 'checklist' && (
+                  <div className="space-y-2">
+                    {question.options?.map((option, index) => (
+                      <label key={index} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          value={option}
+                          onChange={(e) => {
+                            const currentAnswers = responses[question.id] ? 
+                              (Array.isArray(responses[question.id]) ? responses[question.id] as string[] : [responses[question.id] as string]) : [];
+                            
+                            let newAnswers;
+                            if (e.target.checked) {
+                              newAnswers = [...currentAnswers, option];
+                            } else {
+                              newAnswers = currentAnswers.filter(ans => ans !== option);
+                            }
+                            
+                            // Validate limits
+                            const limits = question.checklistLimits;
+                            if (limits?.maxSelections && newAnswers.length > limits.maxSelections) {
+                              alert(`Maksimal ${limits.maxSelections} pilihan yang diperbolehkan`);
+                              return;
+                            }
+                            
+                            handleResponse(question.id, newAnswers);
+                          }}
+                          checked={responses[question.id] ? 
+                            (Array.isArray(responses[question.id]) ? 
+                              (responses[question.id] as string[]).includes(option) : 
+                              responses[question.id] === option) : false
+                          }
+                        />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                    
+                    {/* Display limits info */}
+                    {question.checklistLimits && (
+                      <div className="text-sm text-gray-500 mt-2">
+                        {question.checklistLimits.minSelections && question.checklistLimits.maxSelections ? (
+                          `Pilih ${question.checklistLimits.minSelections}-${question.checklistLimits.maxSelections} opsi`
+                        ) : question.checklistLimits.minSelections ? (
+                          `Pilih minimal ${question.checklistLimits.minSelections} opsi`
+                        ) : question.checklistLimits.maxSelections ? (
+                          `Pilih maksimal ${question.checklistLimits.maxSelections} opsi`
+                        ) : (
+                          'Pilih satu atau lebih opsi'
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

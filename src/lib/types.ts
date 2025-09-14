@@ -90,13 +90,19 @@ export interface Questionnaire {
 }
 
 // Add this export
-export type QuestionType = 'text' | 'rating' | 'multiple_choice';
+export type QuestionType = 'text' | 'rating' | 'multiple_choice' | 'checklist';
+
+export interface ChecklistLimits {
+  minSelections?: number;
+  maxSelections?: number; // undefined means unlimited
+}
 
 export interface Question {
   id: string;
   text: string;
   type: QuestionType; // Use the exported type
   options?: string[];
+  checklistLimits?: ChecklistLimits; // Only for checklist type
   categoryId: string;
   isActive: boolean;
   createdAt: string;

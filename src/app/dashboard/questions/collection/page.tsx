@@ -67,6 +67,7 @@ export default function QuestionCollectionPage() {
       case 'text': return 'Teks';
       case 'rating': return 'Rating';
       case 'multiple_choice': return 'Pilihan Ganda';
+      case 'checklist': return 'Checklist';
       default: return type;
     }
   };
@@ -169,6 +170,7 @@ export default function QuestionCollectionPage() {
               <option value="text">Teks</option>
               <option value="rating">Rating</option>
               <option value="multiple_choice">Pilihan Ganda</option>
+              <option value="checklist">Checklist</option>
             </select>
           </div>
 
@@ -273,6 +275,22 @@ export default function QuestionCollectionPage() {
                     <span className="text-sm text-gray-600">Opsi: </span>
                     <span className="text-sm text-gray-800">
                       {question.options.join(', ')}
+                    </span>
+                  </div>
+                )}
+                {question.type === 'checklist' && question.checklistLimits && (
+                  <div className="mb-2">
+                    <span className="text-sm text-gray-600">Batasan: </span>
+                    <span className="text-sm text-gray-800">
+                      {question.checklistLimits.minSelections && question.checklistLimits.maxSelections ? (
+                        `Min ${question.checklistLimits.minSelections}, Max ${question.checklistLimits.maxSelections}`
+                      ) : question.checklistLimits.minSelections ? (
+                        `Min ${question.checklistLimits.minSelections}`
+                      ) : question.checklistLimits.maxSelections ? (
+                        `Max ${question.checklistLimits.maxSelections}`
+                      ) : (
+                        'Unlimited'
+                      )}
                     </span>
                   </div>
                 )}

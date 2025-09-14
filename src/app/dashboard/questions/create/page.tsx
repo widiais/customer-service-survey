@@ -3,18 +3,18 @@
 import { useState } from 'react';
 import { useQuestions } from '@/hooks/useQuestions';
 import { useCategories } from '@/hooks/useCategories';
-import { Question } from '@/lib/types';
+import { Question, QuestionType, ChecklistLimits } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import QuestionTypeSelector from '@/app/dashboard/questions/create/components/QuestionTypeSelector';
 import OptionsEditor from '@/app/dashboard/questions/create/components/OptionsEditor';
 import CategorySelector from '@/app/dashboard/questions/create/components/CategorySelector';
-
-type QuestionType = 'text' | 'rating' | 'multiple_choice';
+import ChecklistOptionsEditor from '@/app/dashboard/questions/create/components/ChecklistOptionsEditor';
 
 interface QuestionFormData {
   text: string;
   type: QuestionType;
   options: string[];
+  checklistLimits: ChecklistLimits;
   categoryIds: string[];
   isActive: boolean;
 }
@@ -23,6 +23,7 @@ const initialFormData: QuestionFormData = {
   text: '',
   type: 'text',
   options: [''],
+  checklistLimits: {},
   categoryIds: [],
   isActive: true
 };
@@ -51,6 +52,10 @@ export default function CreateQuestionPage() {
         createdAt: new Date().toISOString(),
         ...(formData.type === 'multiple_choice' && {
           options: formData.options.filter(option => option.trim() !== '')
+        }),
+        ...(formData.type === 'checklist' && {
+          options: formData.options.filter(option => option.trim() !== ''),
+          checklistLimits: formData.checklistLimits
         })
       };
 
@@ -71,7 +76,8 @@ export default function CreateQuestionPage() {
     setFormData({
       ...formData,
       type,
-      options: type === 'multiple_choice' ? ['', ''] : ['']
+      options: (type === 'multiple_choice' || type === 'checklist') ? ['', ''] : [''],
+      checklistLimits: type === 'checklist' ? {} : {}
     });
   };
 
@@ -116,6 +122,15 @@ export default function CreateQuestionPage() {
             <OptionsEditor 
               options={formData.options} 
               onOptionsChange={(options) => setFormData({ ...formData, options })} 
+            />
+          )}
+
+          {formData.type === 'checklist' && (
+            <ChecklistOptionsEditor
+              options={formData.options}
+              onOptionsChange={(options) => setFormData({ ...formData, options })}
+              limits={formData.checklistLimits}
+              onLimitsChange={(checklistLimits) => setFormData({ ...formData, checklistLimits })}
             />
           )}
 

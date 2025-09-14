@@ -12,7 +12,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { RatingCharts } from '@/components/charts/RatingCharts';
+import { ChecklistCharts } from '@/components/charts/ChecklistCharts';
 import { RatingAnalyticsService, RatingData } from '@/lib/ratingAnalyticsService';
+import { ChecklistAnalyticsService, ChecklistData } from '@/lib/checklistAnalyticsService';
 
 // Interface untuk subject/survey data
 interface SurveySubject {
@@ -35,6 +37,10 @@ export default function SurveyGrafikPage() {
   const [ratingData, setRatingData] = useState<RatingData[]>([]);
   const [loadingRatingData, setLoadingRatingData] = useState(false);
   const [selectedRatingQuestion, setSelectedRatingQuestion] = useState<string | null>(null);
+  const [checklistData, setChecklistData] = useState<ChecklistData[]>([]);
+  const [loadingChecklistData, setLoadingChecklistData] = useState(false);
+  const [selectedChecklistQuestion, setSelectedChecklistQuestion] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'rating' | 'checklist'>('rating');
 
   // Fetch subjects/surveys from Firestore with optimized queries
   useEffect(() => {
@@ -116,10 +122,27 @@ export default function SurveyGrafikPage() {
     }
   };
 
+  // Fetch checklist analytics for selected subject
+  const fetchChecklistAnalytics = async (storeId: string) => {
+    try {
+      setLoadingChecklistData(true);
+      const analytics = await ChecklistAnalyticsService.getChecklistAnalytics(storeId);
+      setChecklistData(analytics);
+      if (analytics.length > 0) {
+        setSelectedChecklistQuestion(analytics[0].questionId);
+      }
+    } catch (error) {
+      console.error('Error fetching checklist analytics:', error);
+    } finally {
+      setLoadingChecklistData(false);
+    }
+  };
+
   // Handle subject selection
   const handleViewSubject = (storeId: string) => {
     setSelectedSubject(storeId);
     fetchRatingAnalytics(storeId);
+    fetchChecklistAnalytics(storeId);
   };
 
   // Handle back to subjects list
@@ -127,6 +150,9 @@ export default function SurveyGrafikPage() {
     setSelectedSubject(null);
     setRatingData([]);
     setSelectedRatingQuestion(null);
+    setChecklistData([]);
+    setSelectedChecklistQuestion(null);
+    setActiveTab('rating');
   };
 
 
@@ -280,25 +306,78 @@ export default function SurveyGrafikPage() {
         </Card>
       )}
 
-      {/* Rating Charts View */}
+      {/* Charts View */}
       {selectedSubject && (
         <div className="space-y-6">
-          {loadingRatingData ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600 text-lg">Tunggu ya, lagi load data rating...</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <RatingCharts
-              ratingData={ratingData}
-              selectedQuestion={selectedRatingQuestion || undefined}
-              onQuestionSelect={setSelectedRatingQuestion}
-            />
+          {/* Tab Navigation */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setActiveTab('rating')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'rating'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Rating Charts
+                </button>
+                <button
+                  onClick={() => setActiveTab('checklist')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'checklist'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Checklist Charts
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Rating Charts */}
+          {activeTab === 'rating' && (
+            <>
+              {loadingRatingData ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 text-lg">Tunggu ya, lagi load data rating...</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <RatingCharts
+                  ratingData={ratingData}
+                  selectedQuestion={selectedRatingQuestion || undefined}
+                  onQuestionSelect={setSelectedRatingQuestion}
+                />
               )}
-            </div>
+            </>
           )}
+
+          {/* Checklist Charts */}
+          {activeTab === 'checklist' && (
+            <>
+              {loadingChecklistData ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 text-lg">Tunggu ya, lagi load data checklist...</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <ChecklistCharts
+                  checklistData={checklistData}
+                  selectedQuestion={selectedChecklistQuestion || undefined}
+                  onQuestionSelect={setSelectedChecklistQuestion}
+                />
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

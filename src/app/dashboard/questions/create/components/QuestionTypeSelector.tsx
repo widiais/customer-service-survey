@@ -11,7 +11,8 @@ export default function QuestionTypeSelector({ selectedType, onTypeChange }: Que
   const types = [
     { value: 'text' as QuestionType, label: 'Teks', description: 'Jawaban berupa teks bebas' },
     { value: 'rating' as QuestionType, label: 'Rating', description: 'Skala rating 1-5' },
-    { value: 'multiple_choice' as QuestionType, label: 'Pilihan Ganda', description: 'Beberapa opsi pilihan' }
+    { value: 'multiple_choice' as QuestionType, label: 'Pilihan Ganda', description: 'Beberapa opsi pilihan' },
+    { value: 'checklist' as QuestionType, label: 'Checklist', description: 'Pilih 1 atau lebih dari opsi yang tersedia' }
   ];
 
   return (
@@ -19,7 +20,7 @@ export default function QuestionTypeSelector({ selectedType, onTypeChange }: Que
       <label className="block text-sm font-medium text-gray-700 mb-2">
         Tipe Pertanyaan *
       </label>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {types.map((type) => (
           <div
             key={type.value}
