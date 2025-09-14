@@ -13,8 +13,10 @@ import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { RatingCharts } from '@/components/charts/RatingCharts';
 import { ChecklistCharts } from '@/components/charts/ChecklistCharts';
+import { MultipleChoiceCharts } from '@/components/charts/MultipleChoiceCharts';
 import { RatingAnalyticsService, RatingData } from '@/lib/ratingAnalyticsService';
 import { ChecklistAnalyticsService, ChecklistData } from '@/lib/checklistAnalyticsService';
+import { MultipleChoiceAnalyticsService, MultipleChoiceData } from '@/lib/multipleChoiceAnalyticsService';
 
 // Interface untuk subject/survey data
 interface SurveySubject {
@@ -40,7 +42,10 @@ export default function SurveyGrafikPage() {
   const [checklistData, setChecklistData] = useState<ChecklistData[]>([]);
   const [loadingChecklistData, setLoadingChecklistData] = useState(false);
   const [selectedChecklistQuestion, setSelectedChecklistQuestion] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'rating' | 'checklist'>('rating');
+  const [multipleChoiceData, setMultipleChoiceData] = useState<MultipleChoiceData[]>([]);
+  const [loadingMultipleChoiceData, setLoadingMultipleChoiceData] = useState(false);
+  const [selectedMultipleChoiceQuestion, setSelectedMultipleChoiceQuestion] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'rating' | 'checklist' | 'multiple_choice'>('rating');
 
   // Fetch subjects/surveys from Firestore with optimized queries
   useEffect(() => {
@@ -138,11 +143,28 @@ export default function SurveyGrafikPage() {
     }
   };
 
+  // Fetch multiple choice analytics for selected subject
+  const fetchMultipleChoiceAnalytics = async (storeId: string) => {
+    try {
+      setLoadingMultipleChoiceData(true);
+      const analytics = await MultipleChoiceAnalyticsService.getMultipleChoiceAnalytics(storeId);
+      setMultipleChoiceData(analytics);
+      if (analytics.length > 0) {
+        setSelectedMultipleChoiceQuestion(analytics[0].questionId);
+      }
+    } catch (error) {
+      console.error('Error fetching multiple choice analytics:', error);
+    } finally {
+      setLoadingMultipleChoiceData(false);
+    }
+  };
+
   // Handle subject selection
   const handleViewSubject = (storeId: string) => {
     setSelectedSubject(storeId);
     fetchRatingAnalytics(storeId);
     fetchChecklistAnalytics(storeId);
+    fetchMultipleChoiceAnalytics(storeId);
   };
 
   // Handle back to subjects list
@@ -152,6 +174,8 @@ export default function SurveyGrafikPage() {
     setSelectedRatingQuestion(null);
     setChecklistData([]);
     setSelectedChecklistQuestion(null);
+    setMultipleChoiceData([]);
+    setSelectedMultipleChoiceQuestion(null);
     setActiveTab('rating');
   };
 
@@ -194,11 +218,11 @@ export default function SurveyGrafikPage() {
           )}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              {selectedSubject ? 'Grafik Rating' : 'Grafik Survey'}
+              {selectedSubject ? 'Grafik Survey' : 'Grafik Survey'}
             </h1>
             <p className="text-gray-600">
               {selectedSubject
-                ? `Analisis rating untuk ${stores.find(s => s.id === selectedSubject)?.name}`
+                ? `Analisis survey untuk ${stores.find(s => s.id === selectedSubject)?.name}`
                 : 'Kelola dan lihat grafik survey dari pelanggan'
               }
             </p>
@@ -333,6 +357,16 @@ export default function SurveyGrafikPage() {
                 >
                   Checklist Charts
                 </button>
+                <button
+                  onClick={() => setActiveTab('multiple_choice')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'multiple_choice'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Pilihan Ganda Charts
+                </button>
               </div>
             </CardContent>
           </Card>
@@ -372,6 +406,26 @@ export default function SurveyGrafikPage() {
                   checklistData={checklistData}
                   selectedQuestion={selectedChecklistQuestion || undefined}
                   onQuestionSelect={setSelectedChecklistQuestion}
+                />
+              )}
+            </>
+          )}
+
+          {/* Multiple Choice Charts */}
+          {activeTab === 'multiple_choice' && (
+            <>
+              {loadingMultipleChoiceData ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 text-lg">Tunggu ya, lagi load data pilihan ganda...</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <MultipleChoiceCharts
+                  multipleChoiceData={multipleChoiceData}
+                  selectedQuestion={selectedMultipleChoiceQuestion || undefined}
+                  onQuestionSelect={setSelectedMultipleChoiceQuestion}
                 />
               )}
             </>

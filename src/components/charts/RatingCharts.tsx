@@ -8,14 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Area,
-  AreaChart
+  ResponsiveContainer
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -157,15 +150,14 @@ export function RatingCharts({ ratingData, selectedQuestion, onQuestionSelect }:
         </Card>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bar Chart - Rating Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribusi Rating</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+      {/* Bar Chart - Rating Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribusi Rating</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-96">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={selectedData.distribution}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
@@ -187,108 +179,9 @@ export function RatingCharts({ ratingData, selectedQuestion, onQuestionSelect }:
                 />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Pie Chart - Rating Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Persentase Rating</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={selectedData.distribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ rating, percentage }) => `${rating}⭐ (${percentage.toFixed(1)}%)`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {selectedData.distribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value: number) => [
-                    `${value} jawaban`,
-                    'Jumlah'
-                  ]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Area Chart - Rating Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tren Rating</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={selectedData.distribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="rating" 
-                  tickFormatter={(value) => `${value}⭐`}
-                />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: number) => [
-                    `${value} jawaban`,
-                    'Jumlah'
-                  ]}
-                  labelFormatter={(label) => `Rating ${label} bintang`}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="#3B82F6" 
-                  fill="#3B82F6" 
-                  fillOpacity={0.3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Line Chart - Rating Comparison */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Perbandingan Rating</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={selectedData.distribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="rating" 
-                  tickFormatter={(value) => `${value}⭐`}
-                />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: number) => [
-                    `${value} jawaban`,
-                    'Jumlah'
-                  ]}
-                  labelFormatter={(label) => `Rating ${label} bintang`}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="#3B82F6" 
-                  strokeWidth={3}
-                  dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Detailed Rating Breakdown */}
       <Card>
