@@ -26,7 +26,8 @@ export default function NewUserPage() {
     subject: false,
     survey: {
       results: false,
-      analytics: false
+      analytics: false,
+      grafik: false
     },
     questions: {
       create: false,
@@ -295,6 +296,16 @@ export default function NewUserPage() {
                       className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                     />
                     <Label htmlFor="survey-analytics">Analytics</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="survey-grafik"
+                      checked={permissions.survey.grafik}
+                      onChange={(e) => handlePermissionChange('survey', 'grafik', e.target.checked)}
+                      className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                    />
+                    <Label htmlFor="survey-grafik">Grafik</Label>
                   </div>
                 </div>
               </div>

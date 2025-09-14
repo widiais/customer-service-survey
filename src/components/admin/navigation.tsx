@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Store, FileText, HelpCircle, LogOut, Plus, Users, Tag, ChevronRight, BarChart3, ClipboardList, Menu, X, UserCog, LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Store, FileText, HelpCircle, LogOut, Plus, Users, Tag, ChevronRight, BarChart3, ClipboardList, Menu, X, UserCog, LucideIcon, BarChart } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { User } from '@/lib/types';
@@ -36,6 +36,7 @@ const getNavItems = (user: User | null): NavItem[] => {
         submenu: [
           { href: '/dashboard/survey/results', label: 'Hasil Survey', icon: ClipboardList },
           { href: '/dashboard/survey/analytics', label: 'Analytics', icon: BarChart3 },
+          { href: '/dashboard/survey/grafik', label: 'Grafik', icon: BarChart },
         ]
       },
       {
@@ -76,6 +77,9 @@ const getNavItems = (user: User | null): NavItem[] => {
     }
     if (user.permissions.survey.analytics) {
       surveySubmenu.push({ href: '/dashboard/survey/analytics', label: 'Analytics', icon: BarChart3 });
+    }
+    if (user.permissions.survey.grafik) {
+      surveySubmenu.push({ href: '/dashboard/survey/grafik', label: 'Grafik', icon: BarChart });
     }
     if (surveySubmenu.length > 0) {
       items.push({

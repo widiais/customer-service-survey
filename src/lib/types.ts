@@ -3,6 +3,7 @@ export interface UserPermissions {
   survey: {
     results: boolean;
     analytics: boolean;
+    grafik: boolean;
   };
   questions: {
     create: boolean;

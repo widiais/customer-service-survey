@@ -30,7 +30,8 @@ export default function EditUserPage() {
     subject: false,
     survey: {
       results: false,
-      analytics: false
+      analytics: false,
+      grafik: false
     },
     questions: {
       create: false,
@@ -64,7 +65,21 @@ export default function EditUserPage() {
             confirmPassword: ''
           });
           if (foundUser.permissions) {
-            setPermissions(foundUser.permissions);
+            // Ensure all permission properties exist with default values
+            setPermissions({
+              subject: foundUser.permissions.subject || false,
+              survey: {
+                results: foundUser.permissions.survey?.results || false,
+                analytics: foundUser.permissions.survey?.analytics || false,
+                grafik: foundUser.permissions.survey?.grafik || false
+              },
+              questions: {
+                create: foundUser.permissions.questions?.create || false,
+                groups: foundUser.permissions.questions?.groups || false,
+                categories: foundUser.permissions.questions?.categories || false,
+                collection: foundUser.permissions.questions?.collection || false
+              }
+            });
           }
         } else {
           router.push('/dashboard/users');
@@ -356,6 +371,16 @@ export default function EditUserPage() {
                       className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
                     />
                     <Label htmlFor="survey-analytics">Analytics</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="survey-grafik"
+                      checked={permissions.survey.grafik || false}
+                      onChange={(e) => handlePermissionChange('survey', 'grafik', e.target.checked)}
+                      className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                    />
+                    <Label htmlFor="survey-grafik">Grafik</Label>
                   </div>
                 </div>
               </div>

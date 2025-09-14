@@ -39,7 +39,7 @@ export class UserService {
       role: userData.role,
       permissions: userData.permissions || {
         subject: false,
-        survey: { results: false, analytics: false },
+        survey: { results: false, analytics: false, grafik: false },
         questions: { create: false, groups: false, categories: false, collection: false }
       },
       passwordHash: hashPassword(userData.password),
