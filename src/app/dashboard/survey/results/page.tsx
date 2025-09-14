@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Search, Download, Trash2 } from 'lucide-react';
+import { Eye, Search, Download, Trash2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useStores } from '@/hooks/useStores';
 import { StoreAccessService } from '@/lib/storeAccessService';
 import { SurveyService } from '@/lib/surveyService';
 import { useAuth } from '@/contexts/AuthContext';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // Interface untuk subject/survey data
@@ -41,15 +41,15 @@ export default function SurveyResultsPage() {
   const { stores } = useStores();
   const [searchTerm, setSearchTerm] = useState('');
   const [subjects, setSubjects] = useState<SurveySubject[]>([]);
-  const [responses, setResponses] = useState<SurveyResponse[]>([]);
+  const [allResponses, setAllResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStore, setSelectedStore] = useState<string>('all');
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreResponses, setHasMoreResponses] = useState(false);
   const [loadingResponses, setLoadingResponses] = useState(false);
+  const [totalResponses, setTotalResponses] = useState(0);
   const responsesPerPage = 20;
 
   // Fetch subjects/surveys from Firestore with optimized queries
@@ -115,27 +115,21 @@ export default function SurveyResultsPage() {
     }
   }, [stores, user, refreshTrigger]);
 
-  // Fetch responses for selected subject with pagination
-  const fetchResponsesForSubject = async (storeId: string, page: number = 1) => {
+  // Fetch all responses for selected subject
+  const fetchAllResponsesForSubject = async (storeId: string) => {
     try {
       setLoadingResponses(true);
       const responsesData: SurveyResponse[] = [];
       const responsesRef = collection(db, `stores/${storeId}/responses`);
 
-      // Fetch one extra item to check if there are more pages
+      // Fetch all responses at once
       const responsesQuery = query(
         responsesRef,
-        orderBy('submittedAt', 'desc'),
-        limit(responsesPerPage + 1)
+        orderBy('submittedAt', 'desc')
       );
       const responsesSnapshot = await getDocs(responsesQuery);
 
-      // Check if there are more pages
-      setHasMoreResponses(responsesSnapshot.docs.length > responsesPerPage);
-
-      // Process only the current page items
-      const docsToProcess = responsesSnapshot.docs.slice(0, responsesPerPage);
-      docsToProcess.forEach((doc) => {
+      responsesSnapshot.forEach((doc) => {
         const data = doc.data();
         responsesData.push({
           id: doc.id,
@@ -149,12 +143,9 @@ export default function SurveyResultsPage() {
         });
       });
 
-      if (page === 1) {
-        setResponses(responsesData);
-      } else {
-        setResponses(prev => [...prev, ...responsesData]);
-      }
-      setCurrentPage(page);
+      setAllResponses(responsesData);
+      setTotalResponses(responsesData.length);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error fetching responses for subject:', error);
     } finally {
@@ -166,22 +157,26 @@ export default function SurveyResultsPage() {
   const handleViewSubject = (storeId: string) => {
     setSelectedSubject(storeId);
     setCurrentPage(1);
-    fetchResponsesForSubject(storeId, 1);
+    fetchAllResponsesForSubject(storeId);
   };
 
   // Handle back to subjects list
   const handleBackToSubjects = () => {
     setSelectedSubject(null);
-    setResponses([]);
+    setAllResponses([]);
     setCurrentPage(1);
-    setHasMoreResponses(false);
+    setTotalResponses(0);
   };
 
-  // Handle load more responses
-  const handleLoadMoreResponses = () => {
-    if (selectedSubject && hasMoreResponses) {
-      fetchResponsesForSubject(selectedSubject, currentPage + 1);
-    }
+  // Pagination helpers
+  const totalPages = Math.ceil(totalResponses / responsesPerPage);
+  const startIndex = (currentPage - 1) * responsesPerPage;
+  const endIndex = startIndex + responsesPerPage;
+  const currentResponses = allResponses.slice(startIndex, endIndex);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const filteredSubjects = subjects.filter(subject => {
@@ -190,7 +185,7 @@ export default function SurveyResultsPage() {
     return matchesSearch && matchesStore;
   });
 
-  const filteredResponses = responses.filter(response => {
+  const filteredResponses = currentResponses.filter(response => {
     const matchesSearch = response.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          response.storeName.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
@@ -260,25 +255,29 @@ export default function SurveyResultsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {selectedSubject ? 'Jawaban Survey' : 'Hasil Survey'}
-          </h1>
-          <p className="text-gray-600">
-            {selectedSubject
-              ? `Daftar jawaban untuk ${stores.find(s => s.id === selectedSubject)?.name}`
-              : 'Kelola dan lihat hasil survey dari pelanggan'
-            }
-          </p>
+        <div className="flex items-center gap-4">
           {selectedSubject && (
             <Button
               variant="outline"
+              size="sm"
               onClick={handleBackToSubjects}
-              className="mt-2"
+              className="flex items-center gap-2"
             >
-              ← Kembali ke Daftar Survey
+              <ArrowLeft className="h-4 w-4" />
+              Kembali
             </Button>
           )}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {selectedSubject ? 'Jawaban Survey' : 'Hasil Survey'}
+            </h1>
+            <p className="text-gray-600">
+              {selectedSubject
+                ? `Daftar jawaban untuk ${stores.find(s => s.id === selectedSubject)?.name}`
+                : 'Kelola dan lihat hasil survey dari pelanggan'
+              }
+            </p>
+          </div>
         </div>
         <Button>
           <Download className="h-4 w-4 mr-2" />
@@ -320,12 +319,19 @@ export default function SurveyResultsPage() {
       {/* Subjects Table or Responses Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {selectedSubject
-              ? `Jawaban Survey (${filteredResponses.length})`
-              : `Daftar Survey (${filteredSubjects.length})`
-            }
-          </CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>
+              {selectedSubject
+                ? `Jawaban Survey (${totalResponses} total)`
+                : `Daftar Survey (${filteredSubjects.length})`
+              }
+            </CardTitle>
+            {selectedSubject && totalResponses > 0 && (
+              <div className="text-sm text-gray-500">
+                Halaman {currentPage} dari {totalPages}
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {!selectedSubject ? (
@@ -333,33 +339,34 @@ export default function SurveyResultsPage() {
             <div className="overflow-x-auto">
               <table className="w-full table-auto">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium">Nama Survey</th>
-                    <th className="text-left py-3 px-4 font-medium">Creator Store</th>
-                    <th className="text-left py-3 px-4 font-medium">Jumlah Jawaban</th>
-                    <th className="text-left py-3 px-4 font-medium">Action</th>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900">Nama Survey</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900">Creator Store</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900">Jumlah Jawaban</th>
+                    <th className="text-left py-4 px-6 font-semibold text-gray-900">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredSubjects.map((subject) => (
-                    <tr key={subject.storeId} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div title={subject.storeName}>
+                    <tr key={subject.storeId} className="border-b hover:bg-gray-50 transition-colors">
+                      <td className="py-4 px-6">
+                        <div title={subject.storeName} className="font-medium text-gray-900">
                           {truncateText(subject.storeName, 40)}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-gray-600">
+                      <td className="py-4 px-6 text-gray-600">
                         {subject.creatorName || 'Admin'}
                       </td>
-                      <td className="py-3 px-4">
-                        <Badge variant="secondary">
+                      <td className="py-4 px-6">
+                        <Badge variant="secondary" className="font-medium">
                           {subject.responseCount} jawaban
                         </Badge>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-4 px-6">
                         <Button
                           size="sm"
                           onClick={() => handleViewSubject(subject.storeId)}
+                          className="bg-blue-600 hover:bg-blue-700"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View
@@ -371,21 +378,22 @@ export default function SurveyResultsPage() {
               </table>
 
               {filteredSubjects.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>Belum ada survey yang ditemukan</p>
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">📊</div>
+                  <p className="text-lg">Belum ada survey yang ditemukan</p>
                 </div>
               )}
             </div>
           ) : (
             /* Responses Table */
-            <div className="overflow-x-auto">
+            <div className="space-y-4">
               {loadingResponses ? (
                 /* Loading State */
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                   <p className="text-gray-600 text-lg">Tunggu ya, lagi load datanya...</p>
                 </div>
-              ) : responses.length === 0 ? (
+              ) : allResponses.length === 0 ? (
                 /* Empty State */
                 <div className="text-center py-12">
                   <div className="text-gray-400 text-6xl mb-4">📊</div>
@@ -394,72 +402,130 @@ export default function SurveyResultsPage() {
                 </div>
               ) : (
                 <>
-                  <table className="w-full table-auto">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-4 font-medium">Nama</th>
-                        <th className="text-left py-3 px-4 font-medium">Tanggal Pengisian</th>
-                        <th className="text-left py-3 px-4 font-medium">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredResponses.map((response) => (
-                        <tr key={response.id} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-4">
-                            <div className="font-medium">{response.customerName}</div>
-                          </td>
-                          <td className="py-3 px-4 text-gray-600">
-                            {new Date(response.submittedAt).toLocaleDateString('id-ID', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleViewDetail(response.id, response.storeId)}
+                  <div className="overflow-x-auto">
+                    <table className="w-full table-auto">
+                      <thead>
+                        <tr className="border-b bg-gray-50">
+                          <th className="text-left py-4 px-6 font-semibold text-gray-900">Nama Pelanggan</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-900">Tanggal Pengisian</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-900">Status</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-900">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredResponses.map((response) => (
+                          <tr key={response.id} className="border-b hover:bg-gray-50 transition-colors">
+                            <td className="py-4 px-6">
+                              <div className="font-medium text-gray-900">{response.customerName}</div>
+                              <div className="text-sm text-gray-500">{response.questionGroupNames.join(', ')}</div>
+                            </td>
+                            <td className="py-4 px-6 text-gray-600">
+                              {new Date(response.submittedAt).toLocaleDateString('id-ID', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </td>
+                            <td className="py-4 px-6">
+                              <Badge 
+                                variant={response.completionStatus === 'completed' ? 'default' : 'secondary'}
+                                className="font-medium"
                               >
-                                <Eye className="h-4 w-4 mr-1" />
-                                View
-                              </Button>
-
-                              {canDeleteResponse(response.storeId) && (
+                                {response.completionStatus === 'completed' ? 'Selesai' : 'Sebagian'}
+                              </Badge>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex gap-2">
                                 <Button
                                   size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleDeleteResponse(response.id, response.storeId)}
-                                  disabled={deletingId === response.id}
+                                  onClick={() => handleViewDetail(response.id, response.storeId)}
+                                  className="bg-blue-600 hover:bg-blue-700"
                                 >
-                                  {deletingId === response.id ? (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                  ) : (
-                                    <>
-                                      <Trash2 className="h-4 w-4 mr-1" />
-                                      Delete
-                                    </>
-                                  )}
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
                                 </Button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
 
-                  {hasMoreResponses && filteredResponses.length > 0 && (
-                    <div className="flex justify-center mt-4">
-                      <Button
-                        onClick={handleLoadMoreResponses}
-                        variant="outline"
-                        className="px-6"
-                      >
-                        Load More Responses ({responsesPerPage} per page)
-                      </Button>
+                                {canDeleteResponse(response.storeId) && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleDeleteResponse(response.id, response.storeId)}
+                                    disabled={deletingId === response.id}
+                                  >
+                                    {deletingId === response.id ? (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    ) : (
+                                      <>
+                                        <Trash2 className="h-4 w-4 mr-1" />
+                                        Delete
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="text-sm text-gray-700">
+                        Menampilkan {startIndex + 1} sampai {Math.min(endIndex, totalResponses)} dari {totalResponses} data
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Sebelumnya
+                        </Button>
+                        
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (currentPage >= totalPages - 2) {
+                              pageNum = totalPages - 4 + i;
+                            } else {
+                              pageNum = currentPage - 2 + i;
+                            }
+                            
+                            return (
+                              <Button
+                                key={pageNum}
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(pageNum)}
+                                className={currentPage === pageNum ? "bg-blue-600 hover:bg-blue-700" : ""}
+                              >
+                                {pageNum}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          Selanjutnya
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </>
