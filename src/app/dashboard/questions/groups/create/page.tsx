@@ -123,6 +123,8 @@ export default function CreateQuestionGroupPage() {
       case 'text': return 'Teks';
       case 'rating': return 'Rating';
       case 'multiple_choice': return 'Pilihan Ganda';
+      case 'checklist': return 'Checklist';
+      case 'slider': return 'Slider';
       default: return type;
     }
   };
@@ -256,6 +258,8 @@ export default function CreateQuestionGroupPage() {
                 <option value="text">Teks</option>
                 <option value="rating">Rating</option>
                 <option value="multiple_choice">Pilihan Ganda</option>
+                <option value="checklist">Checklist</option>
+                <option value="slider">Slider</option>
               </select>
             </div>
 

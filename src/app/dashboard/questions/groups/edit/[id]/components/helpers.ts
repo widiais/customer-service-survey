@@ -5,6 +5,8 @@ export const getTypeLabel = (type: string) => {
     case 'text': return 'Teks';
     case 'rating': return 'Rating';
     case 'multiple_choice': return 'Pilihan Ganda';
+    case 'checklist': return 'Checklist';
+    case 'slider': return 'Slider';
     default: return type;
   }
 };

@@ -68,6 +68,7 @@ export default function QuestionCollectionPage() {
       case 'rating': return 'Rating';
       case 'multiple_choice': return 'Pilihan Ganda';
       case 'checklist': return 'Checklist';
+      case 'slider': return 'Slider';
       default: return type;
     }
   };
@@ -171,6 +172,7 @@ export default function QuestionCollectionPage() {
               <option value="rating">Rating</option>
               <option value="multiple_choice">Pilihan Ganda</option>
               <option value="checklist">Checklist</option>
+              <option value="slider">Slider</option>
             </select>
           </div>
 

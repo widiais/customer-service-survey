@@ -16,7 +16,7 @@ import { db } from '@/lib/firebase';
 interface QuestionAnswer {
   questionId: string;
   questionText: string;
-  questionType: 'text' | 'rating' | 'multiple_choice';
+  questionType: 'text' | 'rating' | 'multiple_choice' | 'checklist';
   answer: string | number;
   sectionName: string;
   categoryName: string;

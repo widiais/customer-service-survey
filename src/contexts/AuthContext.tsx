@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         return false;
       }
-    } catch (error) {
+    } catch {
       return false;
     }
   };

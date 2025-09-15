@@ -67,7 +67,7 @@ export function useQuestionTemplates() {
     }
   };
 
-  const applyTemplateToStore = async (templateId: string, storeId: string) => {
+  const applyTemplateToStore = async (templateId: string) => {
     try {
       const template = templates.find(t => t.id === templateId);
       if (!template) throw new Error('Template not found');

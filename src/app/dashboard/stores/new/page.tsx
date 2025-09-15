@@ -11,7 +11,6 @@ import { ArrowLeft, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useStores } from '@/hooks/useStores';
 import { useAuth } from '@/contexts/AuthContext';
-import { cn } from '@/lib/utils';
 
 const defaultRegions = ['Regional 1', 'Regional 2', 'Regional 3'];
 const defaultCities = ['Jakarta', 'Bandung', 'Surabaya', 'Medan', 'Semarang'];
@@ -206,7 +205,7 @@ export default function NewStorePage() {
         managers: [user?.id || ''], // Creator is first manager
       });
       router.push('/dashboard/stores');
-    } catch (error) {
+    } catch {
       alert('Gagal menyimpan toko');
     } finally {
       setIsSubmitting(false);

@@ -51,7 +51,7 @@ export default function AssignGroupsPage() {
         questionGroupIds: selectedGroups.map(group => group.id)
       });
       router.push('/dashboard/stores');
-    } catch (error) {
+    } catch {
       alert('Gagal menyimpan grup pertanyaan');
     }
   };

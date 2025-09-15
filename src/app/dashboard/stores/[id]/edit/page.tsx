@@ -14,7 +14,6 @@ import { Store } from '@/lib/types';
 import { StoreAccessService } from '@/lib/storeAccessService';
 import { useAuth } from '@/contexts/AuthContext';
 import { ManagerSelector } from '@/components/store/ManagerSelector';
-import { cn } from '@/lib/utils';
 
 const defaultRegions = ['Regional 1', 'Regional 2', 'Regional 3'];
 const defaultCities = ['Jakarta', 'Bandung', 'Surabaya', 'Medan', 'Semarang'];
@@ -241,7 +240,7 @@ export default function EditStorePage() {
         manager: formData.manager
       });
       router.push('/dashboard/stores');
-    } catch (error) {
+    } catch {
       alert('Gagal memperbarui Form');
     } finally {
       setIsSubmitting(false);
@@ -278,7 +277,7 @@ export default function EditStorePage() {
       
       // Update current store state
       setCurrentStore(prev => prev ? { ...prev, managers: updatedManagers } : null);
-    } catch (error) {
+    } catch {
       alert('Gagal memperbarui manager list');
     }
   };

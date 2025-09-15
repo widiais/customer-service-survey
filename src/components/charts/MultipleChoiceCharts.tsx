@@ -74,10 +74,10 @@ export function MultipleChoiceCharts({ multipleChoiceData, selectedQuestion, onQ
   
   const mostPopularOption = chartData.length > 0 ? chartData.reduce((max, current) => 
     current.count > max.count ? current : max
-  ) : { option: 'N/A', count: 0, percentage: 0 };
+  ) : { option: 'N/A', fullOption: 'N/A', count: 0, percentage: 0 };
   const leastPopularOption = chartData.length > 0 ? chartData.reduce((min, current) => 
     current.count < min.count ? current : min
-  ) : { option: 'N/A', count: 0, percentage: 0 };
+  ) : { option: 'N/A', fullOption: 'N/A', count: 0, percentage: 0 };
 
   return (
     <div className="space-y-6">
@@ -195,12 +195,12 @@ export function MultipleChoiceCharts({ multipleChoiceData, selectedQuestion, onQ
                   />
                   <YAxis />
                   <Tooltip 
-                    formatter={(value: any, name: string, props: any) => [
-                      `${value} (${props.payload.percentage}%)`,
+                    formatter={(value: number, name: string, props: { payload?: { percentage: number } }) => [
+                      `${value} (${props.payload?.percentage || 0}%)`,
                       'Jumlah'
                     ]}
-                    labelFormatter={(label: string, payload: any) => 
-                      payload && payload[0] ? payload[0].payload.fullOption : label
+                    labelFormatter={(label: string, payload: readonly { payload?: { fullOption?: string } }[]) => 
+                      payload && payload[0] ? payload[0].payload?.fullOption || label : label
                     }
                   />
                   <Bar dataKey="count" fill="#3B82F6" />

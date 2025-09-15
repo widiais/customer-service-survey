@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, addDoc, query, where, orderBy, Query, CollectionReference, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Questionnaire } from '@/lib/types';
@@ -14,7 +14,7 @@ export function useQuestionnaires() {
     promoAcceptanceRate: 0
   });
 
-  const fetchQuestionnaires = async (storeId?: string) => {
+  const fetchQuestionnaires = useCallback(async (storeId?: string) => {
     try {
       setLoading(true);
       let q: Query<DocumentData> | CollectionReference<DocumentData> = collection(db, 'questionnaires');
@@ -39,7 +39,7 @@ export function useQuestionnaires() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const calculateStats = (data: Questionnaire[]) => {
     if (data.length === 0) {
@@ -72,7 +72,7 @@ export function useQuestionnaires() {
 
   useEffect(() => {
     fetchQuestionnaires();
-  }, []);
+  }, [fetchQuestionnaires]);
 
   return {
     questionnaires,

@@ -32,7 +32,7 @@ export default function LoginPage() {
       } else {
         setError('Username atau password salah');
       }
-    } catch (error) {
+    } catch {
       setError('Terjadi kesalahan saat login');
     } finally {
       setIsLoading(false);

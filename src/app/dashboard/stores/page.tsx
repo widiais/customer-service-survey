@@ -18,13 +18,12 @@ export default function StoresPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   
   // QR Popup state
   const [showQRPopup, setShowQRPopup] = useState(false);
   const [selectedStore, setSelectedStore] = useState<{ id: string; name: string; url: string } | null>(null);
   
-  const { stores, loading, error, deleteStore, updateStore } = useStores();
+  const { stores, loading, error, deleteStore } = useStores();
   const { questionGroups } = useQuestionGroups();
 
   // Filter stores based on access control
@@ -39,7 +38,7 @@ export default function StoresPage() {
     if (confirm('Apakah Anda yakin ingin menghapus Subject Form ini?')) {
       try {
         await deleteStore(id);
-      } catch (error) {
+      } catch {
         alert('Gagal menghapus Subject Form');
       }
     }

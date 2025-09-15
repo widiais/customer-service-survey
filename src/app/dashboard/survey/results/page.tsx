@@ -11,7 +11,7 @@ import { useStores } from '@/hooks/useStores';
 import { StoreAccessService } from '@/lib/storeAccessService';
 import { SurveyService } from '@/lib/surveyService';
 import { useAuth } from '@/contexts/AuthContext';
-import { collection, getDocs, query, orderBy, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // Interface untuk subject/survey data

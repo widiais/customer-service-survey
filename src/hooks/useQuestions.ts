@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, Query, CollectionReference, DocumentData } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Question } from '@/lib/types';
@@ -8,7 +8,7 @@ export function useQuestions(storeId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     try {
       setLoading(true);
       let q: Query<DocumentData> | CollectionReference<DocumentData> = collection(db, 'questions');
@@ -29,7 +29,7 @@ export function useQuestions(storeId?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [storeId]);
 
   const addQuestion = async (questionData: Omit<Question, 'id'>) => {
     try {
@@ -66,7 +66,7 @@ export function useQuestions(storeId?: string) {
 
   useEffect(() => {
     fetchQuestions();
-  }, [storeId]);
+  }, [fetchQuestions]);
 
   return {
     questions,

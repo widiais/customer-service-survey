@@ -17,6 +17,8 @@ import { MultipleChoiceCharts } from '@/components/charts/MultipleChoiceCharts';
 import { RatingAnalyticsService, RatingData } from '@/lib/ratingAnalyticsService';
 import { ChecklistAnalyticsService, ChecklistData } from '@/lib/checklistAnalyticsService';
 import { MultipleChoiceAnalyticsService, MultipleChoiceData } from '@/lib/multipleChoiceAnalyticsService';
+import { SliderAnalyticsService, SliderData } from '@/lib/sliderAnalyticsService';
+import { SliderCharts } from '@/components/charts/SliderCharts';
 
 // Interface untuk subject/survey data
 interface SurveySubject {
@@ -45,7 +47,10 @@ export default function SurveyGrafikPage() {
   const [multipleChoiceData, setMultipleChoiceData] = useState<MultipleChoiceData[]>([]);
   const [loadingMultipleChoiceData, setLoadingMultipleChoiceData] = useState(false);
   const [selectedMultipleChoiceQuestion, setSelectedMultipleChoiceQuestion] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'rating' | 'checklist' | 'multiple_choice'>('rating');
+  const [activeTab, setActiveTab] = useState<'rating' | 'checklist' | 'multiple_choice' | 'slider'>('rating');
+  const [sliderData, setSliderData] = useState<SliderData[]>([]);
+  const [loadingSliderData, setLoadingSliderData] = useState(false);
+  const [selectedSliderQuestion, setSelectedSliderQuestion] = useState<string | null>(null);
 
   // Fetch subjects/surveys from Firestore with optimized queries
   useEffect(() => {
@@ -159,12 +164,29 @@ export default function SurveyGrafikPage() {
     }
   };
 
+  // Fetch slider analytics for selected subject
+  const fetchSliderAnalytics = async (storeId: string) => {
+    try {
+      setLoadingSliderData(true);
+      const analytics = await SliderAnalyticsService.getSliderAnalytics(storeId);
+      setSliderData(analytics);
+      if (analytics.length > 0) {
+        setSelectedSliderQuestion(analytics[0].questionId);
+      }
+    } catch (error) {
+      console.error('Error fetching slider analytics:', error);
+    } finally {
+      setLoadingSliderData(false);
+    }
+  };
+
   // Handle subject selection
   const handleViewSubject = (storeId: string) => {
     setSelectedSubject(storeId);
     fetchRatingAnalytics(storeId);
     fetchChecklistAnalytics(storeId);
     fetchMultipleChoiceAnalytics(storeId);
+    fetchSliderAnalytics(storeId);
   };
 
   // Handle back to subjects list
@@ -177,6 +199,8 @@ export default function SurveyGrafikPage() {
     setMultipleChoiceData([]);
     setSelectedMultipleChoiceQuestion(null);
     setActiveTab('rating');
+    setSliderData([]);
+    setSelectedSliderQuestion(null);
   };
 
 
@@ -367,6 +391,16 @@ export default function SurveyGrafikPage() {
                 >
                   Pilihan Ganda Charts
                 </button>
+                <button
+                  onClick={() => setActiveTab('slider')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'slider'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Slider Charts
+                </button>
               </div>
             </CardContent>
           </Card>
@@ -426,6 +460,26 @@ export default function SurveyGrafikPage() {
                   multipleChoiceData={multipleChoiceData}
                   selectedQuestion={selectedMultipleChoiceQuestion || undefined}
                   onQuestionSelect={setSelectedMultipleChoiceQuestion}
+                />
+              )}
+            </>
+          )}
+
+          {/* Slider Charts */}
+          {activeTab === 'slider' && (
+            <>
+              {loadingSliderData ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600 text-lg">Tunggu ya, lagi load data slider...</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <SliderCharts
+                  sliderData={sliderData}
+                  selectedQuestion={selectedSliderQuestion || undefined}
+                  onQuestionSelect={setSelectedSliderQuestion}
                 />
               )}
             </>

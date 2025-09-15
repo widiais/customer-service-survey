@@ -44,7 +44,7 @@ export default function CategoriesPage() {
       });
       setShowAddForm(false);
       setNewCategory({ name: '', description: '', color: 'blue', isActive: true });
-    } catch (error) {
+    } catch {
       alert('Gagal menambah kategori');
     }
   };
@@ -61,7 +61,7 @@ export default function CategoriesPage() {
         isActive: editingCategory.isActive
       });
       setEditingCategory(null);
-    } catch (error) {
+    } catch {
       alert('Gagal mengupdate kategori');
     }
   };
@@ -70,7 +70,7 @@ export default function CategoriesPage() {
     if (confirm('Yakin ingin menghapus kategori ini?')) {
       try {
         await deleteCategory(id);
-      } catch (error) {
+      } catch {
         alert('Gagal menghapus kategori');
       }
     }

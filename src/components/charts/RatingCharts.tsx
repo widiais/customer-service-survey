@@ -29,7 +29,6 @@ interface RatingChartsProps {
   onQuestionSelect?: (questionId: string) => void;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export function RatingCharts({ ratingData, selectedQuestion, onQuestionSelect }: RatingChartsProps) {
   if (!ratingData || ratingData.length === 0) {
@@ -167,7 +166,7 @@ export function RatingCharts({ ratingData, selectedQuestion, onQuestionSelect }:
                 <YAxis />
                 <Tooltip 
                   formatter={(value: number, name: string) => [
-                    `${value} jawaban (${selectedData.distribution.find(d => d.rating === name)?.percentage.toFixed(1)}%)`,
+                    `${value} jawaban (${selectedData.distribution.find(d => d.rating === Number(name))?.percentage.toFixed(1)}%)`,
                     'Jumlah'
                   ]}
                   labelFormatter={(label) => `Rating ${label} bintang`}

@@ -90,7 +90,7 @@ export interface Questionnaire {
 }
 
 // Add this export
-export type QuestionType = 'text' | 'rating' | 'multiple_choice' | 'checklist';
+export type QuestionType = 'text' | 'rating' | 'multiple_choice' | 'checklist' | 'slider';
 
 export interface ChecklistLimits {
   minSelections?: number;

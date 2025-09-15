@@ -12,7 +12,8 @@ export default function QuestionTypeSelector({ selectedType, onTypeChange }: Que
     { value: 'text' as QuestionType, label: 'Teks', description: 'Jawaban berupa teks bebas' },
     { value: 'rating' as QuestionType, label: 'Rating', description: 'Skala rating 1-5' },
     { value: 'multiple_choice' as QuestionType, label: 'Pilihan Ganda', description: 'Beberapa opsi pilihan' },
-    { value: 'checklist' as QuestionType, label: 'Checklist', description: 'Pilih 1 atau lebih dari opsi yang tersedia' }
+    { value: 'checklist' as QuestionType, label: 'Checklist', description: 'Pilih 1 atau lebih dari opsi yang tersedia' },
+    { value: 'slider' as QuestionType, label: 'Slider', description: 'Geser dari merah (rendah) ke hijau (tinggi), 1-10' }
   ];
 
   return (

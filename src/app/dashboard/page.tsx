@@ -216,7 +216,7 @@ export default function DashboardPage() {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-300 mx-auto"></div>
                 </div>
               ) : recentSurveys.length > 0 ? (
-                recentSurveys.map((survey, index) => (
+                recentSurveys.map((survey) => (
                   <div key={survey.id} className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">{survey.storeName}</p>
@@ -245,7 +245,7 @@ export default function DashboardPage() {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-300 mx-auto"></div>
                 </div>
               ) : regionalPerformance.length > 0 ? (
-                regionalPerformance.map((region, index) => (
+                regionalPerformance.map((region) => (
                   <div key={region.region} className="flex items-center justify-between">
                     <span>{region.region}</span>
                     <span className="font-medium">{region.rating}/5</span>

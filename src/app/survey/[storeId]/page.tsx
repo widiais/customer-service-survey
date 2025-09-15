@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useStores } from '@/hooks/useStores';
 import { useQuestionGroups } from '@/hooks/useQuestionGroups';
@@ -19,7 +19,7 @@ export default function SurveyPage() {
   const { questionGroups } = useQuestionGroups();
   const { questions } = useQuestions();
   
-  const [responses, setResponses] = useState<Record<string, string | number>>({});
+  const [responses, setResponses] = useState<Record<string, string | number | string[]>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -45,7 +45,7 @@ export default function SurveyPage() {
     questions.find(q => q.id === questionId)
   ).filter(Boolean) || [];
   
-  const handleResponse = (questionId: string, answer: string | number) => {
+  const handleResponse = (questionId: string, answer: string | number | string[]) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: answer
@@ -127,7 +127,7 @@ export default function SurveyPage() {
       const answersData: Record<string, {
         questionText: string;
         questionType: string;
-        answer: string | number;
+        answer: string | number | string[];
         sectionName: string;
         categoryName: string;
         sectionOrder: number;
@@ -338,6 +338,27 @@ export default function SurveyPage() {
                     ))}
                   </div>
                 )}
+
+                {question.type === 'slider' && (
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={typeof responses[question.id] === 'number' ? (responses[question.id] as number) : 5}
+                      onChange={(e) => handleResponse(question.id, Number(e.target.value))}
+                      className="w-full h-2 rounded-lg appearance-none"
+                      style={{
+                        background: 'linear-gradient(90deg, #ef4444 0%, #22c55e 100%)'
+                      }}
+                    />
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span className="text-red-500">Rendah</span>
+                      <span className="text-green-600">Tinggi</span>
+                    </div>
+                  </div>
+                )}
                 
                 {question.type === 'multiple_choice' && (
                   <div className="space-y-2">
@@ -364,8 +385,9 @@ export default function SurveyPage() {
                           type="checkbox"
                           value={option}
                           onChange={(e) => {
-                            const currentAnswers = responses[question.id] ? 
-                              (Array.isArray(responses[question.id]) ? responses[question.id] as string[] : [responses[question.id] as string]) : [];
+                            const responseValue = responses[question.id];
+                            const currentAnswers = responseValue ? 
+                              (Array.isArray(responseValue) ? responseValue as string[] : [String(responseValue)]) : [];
                             
                             let newAnswers;
                             if (e.target.checked) {
